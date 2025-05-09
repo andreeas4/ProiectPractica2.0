@@ -1,0 +1,175 @@
+﻿@page "/adauga-proiect"
+@using ProiectPractica.Models
+@inject ProiectPractica.Data.ApplicationDbContext DbContext
+@using Microsoft.EntityFrameworkCore
+
+<h3>Adaugă Proiect</h3>
+
+@if (!string.IsNullOrEmpty(mesajEroare))
+{
+    <div class="alert alert-danger">@mesajEroare</div>
+}
+
+@if (!string.IsNullOrEmpty(mesajSucces))
+{
+    <div class="alert alert-success">@mesajSucces</div>
+}
+
+<EditForm Model="@proiectNou" OnValidSubmit="SalveazaProiect" FormName="AddProiectForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label>Nume Client</label>
+        <InputText class="form-control" @bind-Value="proiectNou.NumeClient" />
+    </div>
+
+  
+
+    <div class="mb-3">
+        <label>Domeniul proiectului</label>
+        <InputText class="form-control" @bind-Value="proiectNou.Domeniul" />
+    </div>
+
+    <div class="mb-3">
+        <label>Obiectul contractului</label>
+        <InputText class="form-control" @bind-Value="proiectNou.ObiectulContractului" />
+    </div>
+
+    <div class="mb-3">
+        <label>Data Semnare</label>
+        <InputDate class="form-control" @bind-Value="proiectNou.DataSemnareContract" />
+    </div>
+
+    <div class="mb-3">
+        <label>Data Încheiere</label>
+        <InputDate class="form-control" @bind-Value="proiectNou.DataIncheiereContract" />
+    </div>
+
+    <div class="mb-3">
+        <label>Valoare Contract</label>
+        <InputNumber class="form-control" @bind-Value="proiectNou.ValoareContract" />
+        <ValidationMessage For="@(() => proiectNou.ValoareContract)" />
+    </div>
+
+    <div class="mb-3">
+        <label>Numar livrabile</label>
+        <InputNumber class="form-control" @bind-Value="proiectNou.NrLivrabile" />
+        <ValidationMessage For="@(() => proiectNou.NrLivrabile)" />
+    </div>
+    <div class="mb-3">
+        <label>Status</label>
+        <InputSelect class="form-select" @bind-Value="proiectNou.Status">
+            @foreach (var status in Enum.GetValues<StatusProiect>())
+            {
+                <option value="@status">@status</option>
+            }
+        </InputSelect>
+    </div>
+
+    
+    <div class="form-check mb-3">
+        <InputCheckbox class="form-check-input" @bind-Value="proiectNou.EsteClientPublic" />
+        <label class="form-check-label">Este client public?</label>
+    </div>
+
+    <div class="form-check mb-3">
+        <InputCheckbox class="form-check-input" @bind-Value="proiectNou.AreSubcontractor" />
+        <label class="form-check-label">Are subcontractor?</label>
+    </div>
+
+    @if (proiectNou.AreSubcontractor)
+    {
+        <div class="mb-3">
+            <label>Număr subcontractori</label>
+            <InputNumber class="form-control" @bind-Value="proiectNou.Numarubcontractori" />
+            <ValidationMessage For="@(() => proiectNou.Numarubcontractori)" />
+        </div>
+    }
+
+    <div class="mb-3">
+        <label>Responsabili (selectează unul sau mai mulți)</label>
+        <InputSelectMultiple @bind="utilizatoriSelectati" class="form-select">
+            @foreach (var user in totiUtilizatorii)
+            {
+                <option value="@user.Id">@user.NumeComplet</option>
+            }
+        </InputSelectMultiple>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Salvează</button>
+</EditForm>
+
+@code {
+    Proiect proiectNou = new();
+    List<string> utilizatoriSelectati = new();
+    List<AppUser> totiUtilizatorii = new();
+
+    string? mesajEroare = null;
+    string? mesajSucces = null;
+    int numarAmendamenteSelectat = 0;
+
+    List<AmendamentInput> amendamente = new();
+
+    List<string> tipuriAmendamente = new()
+    {
+        "ModificareValoare",
+        "PrelungireContract",
+        "ModificareLivrabile"
+    };
+
+   
+   
+    protected override async Task OnInitializedAsync()
+    {
+        totiUtilizatorii = await DbContext.Users.ToListAsync();
+    }
+
+   
+    async Task SalveazaProiect()
+    {
+        mesajEroare = null;
+        mesajSucces = null;
+
+        bool exista = await DbContext.Proiecte.AnyAsync(p => p.Cod == proiectNou.Cod);
+        if (exista)
+        {
+            mesajEroare = "Codul proiectului există deja.";
+            return;
+        }
+
+        if (!proiectNou.ExistaAmendamente)
+        {
+            proiectNou.NumarAmendamente = 0;
+        }
+
+        if (!proiectNou.AreSubcontractor)
+        {
+            proiectNou.Numarubcontractori = 0;
+        }
+
+        DbContext.Proiecte.Add(proiectNou);
+        await DbContext.SaveChangesAsync();
+
+        // Salvare responsabili
+        foreach (var userId in utilizatoriSelectati)
+        {
+            var responsabil = new ResponsabilProiect
+            {
+                AppUserId = userId,
+                Cod = proiectNou.Cod,
+                DataAtribuire = DateTime.Now
+            };
+            DbContext.ResponsabiliProiecte.Add(responsabil);
+        }
+
+       
+        await DbContext.SaveChangesAsync();
+
+        mesajSucces = "Proiectul a fost adăugat cu succes!";
+        proiectNou = new();
+        utilizatoriSelectati.Clear();
+        amendamente.Clear();
+        numarAmendamenteSelectat = 0;
+    }
+}

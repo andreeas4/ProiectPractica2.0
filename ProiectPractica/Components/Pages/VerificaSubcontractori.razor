@@ -1,0 +1,60 @@
+﻿@page "/verificare-subcontractori"
+@using ProiectPractica.Models
+@inject ProiectPractica.Data.ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@inject Microsoft.Extensions.Logging.ILogger<VerificaSubcontractori> Logger
+@inject IJSRuntime JSRuntime
+@using Microsoft.EntityFrameworkCore
+
+<h2>Listă Subcontractori</h2>
+
+<button class="btn btn-success mb-3" @onclick="NavigheazaLaAdauga">
+    + Adaugă Subcontractor
+</button>
+
+@if (subcontractori == null)
+{
+    <p>Se încarcă lista de subcontractori...</p>
+}
+else if (!subcontractori.Any())
+{
+    <p>Nu există subcontractori adăugați încă.</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Nume</th>
+                <th>Domeniu</th>
+                <th>Email</th>
+                <th>Telefon</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var subcontractor in subcontractori)
+            {
+                <tr>
+                    <td>@subcontractor.Nume</td>
+                    <td>@subcontractor.Domeniu</td>
+                    <td>@subcontractor.Email</td>
+                    <td>@subcontractor.Telefon</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Subcontractor> subcontractori = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        subcontractori = await DbContext.Subcontractori.ToListAsync();
+    }
+
+    private async Task NavigheazaLaAdauga()
+    {
+        await JSRuntime.InvokeVoidAsync("open", "/adauga-subcontractor", "_blank");
+    }
+}

@@ -1,0 +1,35 @@
+﻿@page "/style-settings"
+@inject HttpClient Http
+
+<h3>Setări Stiluri</h3>
+
+<div>
+    <p>Primul culoare: @primaryColor</p>
+    <p>Culoare secundară: @secondaryColor</p>
+    <p>Font: @fontFamily</p>
+</div>
+
+@code {
+    private string primaryColor;
+    private string secondaryColor;
+    private string fontFamily;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var styleSettings = await Http.GetFromJsonAsync<StyleSettings>("data/styles.json");
+        primaryColor = styleSettings?.PrimaryColor ?? "#000000";
+        secondaryColor = styleSettings?.SecondaryColor ?? "#000000";
+        fontFamily = styleSettings?.FontFamily ?? "Arial";
+    }
+
+    public class StyleSettings
+    {
+        public string PrimaryColor { get; set; }
+        public string SecondaryColor { get; set; }
+        public string FontFamily { get; set; }
+    }
+}
+
+@code {
+
+}
