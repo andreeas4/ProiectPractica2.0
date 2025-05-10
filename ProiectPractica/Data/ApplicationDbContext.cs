@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using ProiectPractica.Entities;
 using ProiectPractica.Models;
 
 namespace ProiectPractica.Data
@@ -13,11 +14,11 @@ namespace ProiectPractica.Data
         {
         }
         
+        public DbSet<ProjectEntity> Projects { get; set; }
         public DbSet<Proiect> Proiecte { get; set; }
         public DbSet<TaskProiect> Taskuri { get; set; }
         public DbSet<Subcontractor> Subcontractori { get; set; }
         public DbSet<ResponsabilProiect> ResponsabiliProiecte { get; set; }
-
         public DbSet<ActAditional> ActeAditionale { get; set; }
         public DbSet<PrelungireContract> PrelungiriContracte { get; set; }
         public DbSet<ModificareValoare> ModificariValoare { get; set; }
@@ -46,8 +47,6 @@ namespace ProiectPractica.Data
                 .HasForeignKey(r => r.Cod)
                 .OnDelete(DeleteBehavior.Cascade);
 
-           
-
             modelBuilder.Entity<Proiect>()
                 .HasMany(p => p.Livrabile)
                 .WithOne(l => l.Proiect)
@@ -59,7 +58,6 @@ namespace ProiectPractica.Data
                 .WithOne(t => t.Proiect)
                 .HasForeignKey(t => t.Cod)
                 .OnDelete(DeleteBehavior.Cascade);
-
 
             modelBuilder.Entity<Proiect>()
                 .HasMany(p => p.ActeAditionale)
