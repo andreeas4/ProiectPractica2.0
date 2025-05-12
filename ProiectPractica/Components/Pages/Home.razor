@@ -5,47 +5,8 @@
 @inject ProiectPractica.Data.ApplicationDbContext DbContext
 @namespace ProiectPractica
 
-<h3>LISTA PROIECTELOR MELE</h3>
 
-@if (proiecte == null || !proiecte.Any())
-{
-    <p>Nu există proiecte salvate.</p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Nume Proiect</th>
-                <th>Cod Proiect</th>
-                <th>Domeniu</th>
-                <th>Data Semnare</th>
-                <th>Data Încheiere</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var proiect in proiecte)
-            {
-                <tr>
-                    <td>@proiect.NumeClient</td>
-                    <td>@proiect.Cod</td>
-                    <td>@proiect.Domeniul</td>
-                    <td>@proiect.DataSemnareContract.ToString("dd/MM/yyyy")</td>
-                    <td>@proiect.DataIncheiereContract.ToString("dd/MM/yyyy")</td>
-                    <td>@proiect.Status</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
 
 @code {
-    private List<Proiect> proiecte;
-
-    protected override async Task OnInitializedAsync()
-    {
-        // Încărcăm proiectele din baza de date
-        proiecte = await DbContext.Proiecte.ToListAsync();
-    }
+    
 }

@@ -1,26 +1,32 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
 
-namespace ProiectPractica.Entities
+namespace ProiectPractica.Models
 {
-    public class AppUser : IdentityUser
+    public class AppUser
     {
+        public string? Id { get; set; } // ID-ul utilizatorului (IdentityUser ID)
+
+        public string? UserName { get; set; } = string.Empty;
+
+        public string? NumeComplet { get; set; } = string.Empty;
+
+        public List<ResponsabilProiect> ProiecteRepartizate { get; set; }
+
         public AppUser()
         {
             ProiecteRepartizate = new List<ResponsabilProiect>();
         }
 
-        public AppUser(string userName) : base(userName)
+        public AppUser(string userName) : this()
         {
+            UserName = userName;
         }
 
-        public AppUser(string? numeComplet, ICollection<ResponsabilProiect> proiecteRepartizate) : this(numeComplet)
+        public AppUser(string? numeComplet, List<ResponsabilProiect> proiecteRepartizate) : this()
         {
+            NumeComplet = numeComplet;
             ProiecteRepartizate = proiecteRepartizate;
         }
-
-        public string? NumeComplet { get; set; } = string.Empty;
-
-        public ICollection<ResponsabilProiect> ProiecteRepartizate { get; set; }
     }
 }

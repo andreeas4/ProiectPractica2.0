@@ -20,6 +20,6 @@ namespace ProiectPractica.Entities
 
         [ForeignKey(nameof(Proiect))]
         public int Cod { get; set; }
-        public Proiect Proiect { get; set; } = null!;
+        public ProiectEntity Proiect { get; set; } = null!;
     }
 }

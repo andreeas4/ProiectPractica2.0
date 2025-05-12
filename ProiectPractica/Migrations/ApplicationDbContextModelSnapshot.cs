@@ -155,25 +155,7 @@ namespace ProiectPractica.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ProiectPractica.Entities.ProjectEntity", b =>
-                {
-                    b.Property<int>("Code")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Code"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Code");
-
-                    b.ToTable("Projects");
-                });
-
-            modelBuilder.Entity("ProiectPractica.Models.ActAditional", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.ActAditionalEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -198,12 +180,12 @@ namespace ProiectPractica.Migrations
 
                     b.ToTable("ActeAditionale");
 
-                    b.HasDiscriminator<string>("TipAct").HasValue("ActAditional");
+                    b.HasDiscriminator<string>("TipAct").HasValue("ActAditionalEntity");
 
                     b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.AppUser", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.AppUserEntity", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -271,7 +253,7 @@ namespace ProiectPractica.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.Livrabil", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.LivrabilEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -302,7 +284,7 @@ namespace ProiectPractica.Migrations
                     b.ToTable("Livrabile");
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.Proiect", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.ProiectEntity", b =>
                 {
                     b.Property<int>("Cod")
                         .ValueGeneratedOnAdd()
@@ -336,7 +318,7 @@ namespace ProiectPractica.Migrations
                     b.Property<int>("NumarAmendamente")
                         .HasColumnType("int");
 
-                    b.Property<int>("Numarubcontractori")
+                    b.Property<int>("NumarSubcontractori")
                         .HasColumnType("int");
 
                     b.Property<string>("NumeClient")
@@ -361,7 +343,7 @@ namespace ProiectPractica.Migrations
                     b.ToTable("Proiecte");
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.ResponsabilProiect", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.ResponsabilProiectEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -388,7 +370,7 @@ namespace ProiectPractica.Migrations
                     b.ToTable("ResponsabiliProiecte");
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.Subcontractor", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.SubcontractorEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -409,7 +391,7 @@ namespace ProiectPractica.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int?>("ProiectCod")
+                    b.Property<int?>("ProiectEntityCod")
                         .HasColumnType("int");
 
                     b.Property<string>("Telefon")
@@ -417,12 +399,12 @@ namespace ProiectPractica.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProiectCod");
+                    b.HasIndex("ProiectEntityCod");
 
                     b.ToTable("Subcontractori");
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.TaskProiect", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.TaskProiectEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -463,9 +445,9 @@ namespace ProiectPractica.Migrations
                     b.ToTable("Taskuri");
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.ModificareLivrabile", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.ModificareLivrabileEntity", b =>
                 {
-                    b.HasBaseType("ProiectPractica.Models.ActAditional");
+                    b.HasBaseType("ProiectPractica.Entities.ActAditionalEntity");
 
                     b.Property<string>("DescriereSchimbare")
                         .IsRequired()
@@ -477,9 +459,9 @@ namespace ProiectPractica.Migrations
                     b.HasDiscriminator().HasValue("ModificareLivrabile");
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.ModificareValoare", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.ModificareValoareEntity", b =>
                 {
-                    b.HasBaseType("ProiectPractica.Models.ActAditional");
+                    b.HasBaseType("ProiectPractica.Entities.ActAditionalEntity");
 
                     b.Property<string>("Motiv")
                         .HasColumnType("nvarchar(max)");
@@ -491,9 +473,9 @@ namespace ProiectPractica.Migrations
                     b.HasDiscriminator().HasValue("ModificareValoare");
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.PrelungireContract", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.PrelungireContractEntity", b =>
                 {
-                    b.HasBaseType("ProiectPractica.Models.ActAditional");
+                    b.HasBaseType("ProiectPractica.Entities.ActAditionalEntity");
 
                     b.Property<DateTime>("NouaDataIncheiere")
                         .HasColumnType("datetime2");
@@ -515,7 +497,7 @@ namespace ProiectPractica.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("ProiectPractica.Models.AppUser", null)
+                    b.HasOne("ProiectPractica.Entities.AppUserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -524,7 +506,7 @@ namespace ProiectPractica.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("ProiectPractica.Models.AppUser", null)
+                    b.HasOne("ProiectPractica.Entities.AppUserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -539,7 +521,7 @@ namespace ProiectPractica.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ProiectPractica.Models.AppUser", null)
+                    b.HasOne("ProiectPractica.Entities.AppUserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -548,16 +530,16 @@ namespace ProiectPractica.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("ProiectPractica.Models.AppUser", null)
+                    b.HasOne("ProiectPractica.Entities.AppUserEntity", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.ActAditional", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.ActAditionalEntity", b =>
                 {
-                    b.HasOne("ProiectPractica.Models.Proiect", "Proiect")
+                    b.HasOne("ProiectPractica.Entities.ProiectEntity", "Proiect")
                         .WithMany("ActeAditionale")
                         .HasForeignKey("Cod")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -566,9 +548,9 @@ namespace ProiectPractica.Migrations
                     b.Navigation("Proiect");
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.Livrabil", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.LivrabilEntity", b =>
                 {
-                    b.HasOne("ProiectPractica.Models.Proiect", "Proiect")
+                    b.HasOne("ProiectPractica.Entities.ProiectEntity", "Proiect")
                         .WithMany("Livrabile")
                         .HasForeignKey("Cod")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -577,15 +559,15 @@ namespace ProiectPractica.Migrations
                     b.Navigation("Proiect");
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.ResponsabilProiect", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.ResponsabilProiectEntity", b =>
                 {
-                    b.HasOne("ProiectPractica.Models.AppUser", "AppUser")
+                    b.HasOne("ProiectPractica.Entities.AppUserEntity", "AppUser")
                         .WithMany("ProiecteRepartizate")
                         .HasForeignKey("AppUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ProiectPractica.Models.Proiect", "Proiect")
+                    b.HasOne("ProiectPractica.Entities.ProiectEntity", "Proiect")
                         .WithMany("Responsabili")
                         .HasForeignKey("Cod")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -596,16 +578,16 @@ namespace ProiectPractica.Migrations
                     b.Navigation("Proiect");
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.Subcontractor", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.SubcontractorEntity", b =>
                 {
-                    b.HasOne("ProiectPractica.Models.Proiect", null)
+                    b.HasOne("ProiectPractica.Entities.ProiectEntity", null)
                         .WithMany("Subcontractori")
-                        .HasForeignKey("ProiectCod");
+                        .HasForeignKey("ProiectEntityCod");
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.TaskProiect", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.TaskProiectEntity", b =>
                 {
-                    b.HasOne("ProiectPractica.Models.Proiect", "Proiect")
+                    b.HasOne("ProiectPractica.Entities.ProiectEntity", "Proiect")
                         .WithMany("Taskuri")
                         .HasForeignKey("Cod")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -614,12 +596,12 @@ namespace ProiectPractica.Migrations
                     b.Navigation("Proiect");
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.AppUser", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.AppUserEntity", b =>
                 {
                     b.Navigation("ProiecteRepartizate");
                 });
 
-            modelBuilder.Entity("ProiectPractica.Models.Proiect", b =>
+            modelBuilder.Entity("ProiectPractica.Entities.ProiectEntity", b =>
                 {
                     b.Navigation("ActeAditionale");
 

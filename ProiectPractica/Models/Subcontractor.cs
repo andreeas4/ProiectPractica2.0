@@ -1,26 +1,23 @@
-﻿
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace ProiectPractica.Entities
+namespace ProiectPractica.Models
 {
     public class Subcontractor
     {
-        [Key]
         public int Id { get; set; }
 
-        [Required, StringLength(100)]
+        [Required(ErrorMessage = "Numele subcontractorului este obligatoriu.")]
+        [StringLength(100, ErrorMessage = "Numele poate avea maxim 100 de caractere.")]
         public string Nume { get; set; } = string.Empty;
 
-        [Required, StringLength(100)]
+        [Required(ErrorMessage = "Domeniul este obligatoriu.")]
+        [StringLength(100, ErrorMessage = "Domeniul poate avea maxim 100 de caractere.")]
         public string Domeniu { get; set; } = string.Empty;
 
-        public string? Email { get; set; } // <- nu este obligatoriu
-        public string? Telefon { get; set; } // <- nu este obligatoriu
+        [EmailAddress(ErrorMessage = "Adresa de email nu este validă.")]
+        public string? Email { get; set; }
 
-       
+        [Phone(ErrorMessage = "Numărul de telefon nu este valid.")]
+        public string? Telefon { get; set; }
     }
 }
-
-
-

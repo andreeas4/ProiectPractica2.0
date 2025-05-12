@@ -1,8 +1,11 @@
 ﻿@page "/adauga-subcontractor"
-@using ProiectPractica.Entities
-@using ProiectPractica.Models
-@inject ProiectPractica.Data.ApplicationDbContext DbContext
 @inject ILogger<AdaugaSubcontractor> Logger
+@using ProiectPractica.Entities
+@using ProiectPractica.Interfaces
+@using ProiectPractica.Models
+@using Microsoft.EntityFrameworkCore
+@inject IRepository<SubcontractorEntity> repository
+
 <h2>Adaugă Subcontractor</h2>
 
 @if (!string.IsNullOrEmpty(MesajEroare))
@@ -15,39 +18,39 @@
     <div class="alert alert-success">@MesajSucces</div>
 }
 
-<EditForm Model="@SubcontractorModel" OnSubmit="@OnSubmit" FormName="AdaugaSubcontractorForm">
+<EditForm Model="@SubcontractorModel" OnValidSubmit="OnSubmit" FormName="AdaugaSubcontractor">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
     <div class="mb-3">
-        <label>Nume</label>
+        <label>Nume:</label>
         <InputText class="form-control" @bind-Value="SubcontractorModel.Nume" />
         <ValidationMessage For="@(() => SubcontractorModel.Nume)" />
     </div>
 
     <div class="mb-3">
-        <label>Domeniu</label>
+        <label>Domeniu:</label>
         <InputText class="form-control" @bind-Value="SubcontractorModel.Domeniu" />
         <ValidationMessage For="@(() => SubcontractorModel.Domeniu)" />
     </div>
 
     <div class="mb-3">
-        <label>Email (opțional)</label>
+        <label>Email (opțional):</label>
         <InputText class="form-control" @bind-Value="SubcontractorModel.Email" />
+        <ValidationMessage For="@(() => SubcontractorModel.Email)" />
     </div>
 
     <div class="mb-3">
-        <label>Telefon (opțional)</label>
+        <label>Telefon (opțional):</label>
         <InputText class="form-control" @bind-Value="SubcontractorModel.Telefon" />
+        <ValidationMessage For="@(() => SubcontractorModel.Telefon)" />
     </div>
 
     <button class="btn btn-primary" type="submit">Salvează</button>
 </EditForm>
 
 @code {
-    [SupplyParameterFromForm]
     private Subcontractor SubcontractorModel { get; set; } = new Subcontractor();
-
     private string? MesajEroare { get; set; }
     private string? MesajSucces { get; set; }
 
@@ -61,13 +64,18 @@
             Logger.LogInformation("Date introduse: Nume = {Nume}, Domeniu = {Domeniu}, Email = {Email}, Telefon = {Telefon}",
                 SubcontractorModel.Nume, SubcontractorModel.Domeniu, SubcontractorModel.Email, SubcontractorModel.Telefon);
 
-            DbContext.Subcontractori.Add(SubcontractorModel);
-            await DbContext.SaveChangesAsync();
+            var subcontractorEntity = new SubcontractorEntity
+                {
+                    Nume = SubcontractorModel.Nume,
+                    Domeniu = SubcontractorModel.Domeniu,
+                    Email = SubcontractorModel.Email,
+                    Telefon = SubcontractorModel.Telefon
+                };
+
+            await repository.AddAsync(subcontractorEntity);
+            await repository.SaveAsync();
 
             MesajSucces = "Subcontractorul a fost adăugat cu succes!";
-
-            // Resetăm formularul
-            SubcontractorModel = new Subcontractor();
         }
         catch (Exception ex)
         {

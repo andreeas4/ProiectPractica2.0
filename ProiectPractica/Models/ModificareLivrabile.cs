@@ -1,13 +1,12 @@
-﻿namespace ProiectPractica.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ProiectPractica.Models
 {
     public class ModificareLivrabile : ActAditional
     {
-        public ModificareLivrabile()
-        {
-        }
+        
 
-        public string DescriereSchimbare { get; set; }
-
-        public bool EsteAdaugare { get; set; } // true = adăugare, false = eliminare
+        [Display(Name = "Este adăugare?")]
+        public bool EsteAdaugare { get; set; } = true; // default este adăugare
     }
 }

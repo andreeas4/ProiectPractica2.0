@@ -7,20 +7,20 @@ namespace ProiectPractica.Entities
     {
         public AppUserEntity()
         {
-            ProiecteRepartizate = new List<ResponsabilProiect>();
+            ProiecteRepartizate = new List<ResponsabilProiectEntity>();
         }
 
         public AppUserEntity(string userName) : base(userName)
         {
         }
 
-        public AppUserEntity(string? numeComplet, ICollection<ResponsabilProiect> proiecteRepartizate) : this(numeComplet)
+        public AppUserEntity(string? numeComplet, ICollection<ResponsabilProiectEntity> proiecteRepartizate) : this(numeComplet)
         {
             ProiecteRepartizate = proiecteRepartizate;
         }
 
         public string? NumeComplet { get; set; } = string.Empty;
 
-        public ICollection<ResponsabilProiect> ProiecteRepartizate { get; set; }
+        public ICollection<ResponsabilProiectEntity> ProiecteRepartizate { get; set; }
     }
 }

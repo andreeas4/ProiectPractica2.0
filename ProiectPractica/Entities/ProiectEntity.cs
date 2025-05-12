@@ -48,7 +48,7 @@ namespace ProiectPractica.Entities
         public DateTime DataIncheiereContract { get; set; }
 
         [Required]
-        public StatusProiect Status { get; set; }
+        public StatusProiectEntity Status { get; set; }
 
         [Required]
         [Display(Name = "Este amendat?")]
@@ -71,7 +71,7 @@ namespace ProiectPractica.Entities
 
         [Display(Name = "Număr subcontractori")]
         [Range(0, int.MaxValue, ErrorMessage = "Numărul de subcontractori trebuie să fie pozitiv.")]
-        public int Numarubcontractori { get; set; }  // Copiat exact cum e folosit
+        public int NumarSubcontractori { get; set; }  // Copiat exact cum e folosit
 
         [Range(0, int.MaxValue, ErrorMessage = "Numărul de livrabile trebuie să fie pozitiv.")]
         public int NrLivrabile { get; set; }

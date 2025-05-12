@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ProiectPractica.Entities
+namespace ProiectPractica.Models
 {
     public class PrelungireContract : ActAditional
     {
-        public Guid Id { get; set; }
+        
 
         [Required(ErrorMessage = "Data încheierii este obligatorie")]
         public DateTime NouaDataIncheiere { get; set; }

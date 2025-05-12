@@ -1,6 +1,6 @@
 ﻿@page "/adauga-proiect"
-@using ProiectPractica.Entities
 @using ProiectPractica.Models
+@using ProiectPractica.Entities
 @inject ProiectPractica.Data.ApplicationDbContext DbContext
 @using Microsoft.EntityFrameworkCore
 
@@ -16,51 +16,48 @@
     <div class="alert alert-success">@mesajSucces</div>
 }
 
-<EditForm Model="@proiectNou" OnValidSubmit="SalveazaProiect" FormName="AddProiectForm">
+<EditForm Model="@proiectModel" OnValidSubmit="SalveazaProiect" FormName="AdaugaProiectForm">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
     <div class="mb-3">
         <label>Nume Client</label>
-        <InputText class="form-control" @bind-Value="proiectNou.NumeClient" />
+        <InputText class="form-control" @bind-Value="proiectModel.NumeClient" />
     </div>
-
-  
 
     <div class="mb-3">
         <label>Domeniul proiectului</label>
-        <InputText class="form-control" @bind-Value="proiectNou.Domeniul" />
+        <InputText class="form-control" @bind-Value="proiectModel.Domeniul" />
     </div>
 
     <div class="mb-3">
         <label>Obiectul contractului</label>
-        <InputText class="form-control" @bind-Value="proiectNou.ObiectulContractului" />
+        <InputText class="form-control" @bind-Value="proiectModel.ObiectulContractului" />
     </div>
 
     <div class="mb-3">
         <label>Data Semnare</label>
-        <InputDate class="form-control" @bind-Value="proiectNou.DataSemnareContract" />
+        <InputDate class="form-control" @bind-Value="proiectModel.DataSemnareContract" />
     </div>
 
     <div class="mb-3">
         <label>Data Încheiere</label>
-        <InputDate class="form-control" @bind-Value="proiectNou.DataIncheiereContract" />
+        <InputDate class="form-control" @bind-Value="proiectModel.DataIncheiereContract" />
     </div>
 
     <div class="mb-3">
         <label>Valoare Contract</label>
-        <InputNumber class="form-control" @bind-Value="proiectNou.ValoareContract" />
-        <ValidationMessage For="@(() => proiectNou.ValoareContract)" />
+        <InputNumber class="form-control" @bind-Value="proiectModel.ValoareContract" />
     </div>
 
     <div class="mb-3">
-        <label>Numar livrabile</label>
-        <InputNumber class="form-control" @bind-Value="proiectNou.NrLivrabile" />
-        <ValidationMessage For="@(() => proiectNou.NrLivrabile)" />
+        <label>Număr livrabile</label>
+        <InputNumber class="form-control" @bind-Value="proiectModel.NrLivrabile" />
     </div>
+
     <div class="mb-3">
         <label>Status</label>
-        <InputSelect class="form-select" @bind-Value="proiectNou.Status">
+        <InputSelect class="form-select" @bind-Value="proiectModel.Status">
             @foreach (var status in Enum.GetValues<StatusProiect>())
             {
                 <option value="@status">@status</option>
@@ -68,109 +65,58 @@
         </InputSelect>
     </div>
 
-    
     <div class="form-check mb-3">
-        <InputCheckbox class="form-check-input" @bind-Value="proiectNou.EsteClientPublic" />
+        <InputCheckbox class="form-check-input" @bind-Value="proiectModel.EsteClientPublic" />
         <label class="form-check-label">Este client public?</label>
     </div>
 
     <div class="form-check mb-3">
-        <InputCheckbox class="form-check-input" @bind-Value="proiectNou.AreSubcontractor" />
+        <InputCheckbox class="form-check-input" @bind-Value="proiectModel.AreSubcontractor" />
         <label class="form-check-label">Are subcontractor?</label>
-    </div>
-
-    @if (proiectNou.AreSubcontractor)
-    {
-        <div class="mb-3">
-            <label>Număr subcontractori</label>
-            <InputNumber class="form-control" @bind-Value="proiectNou.Numarubcontractori" />
-            <ValidationMessage For="@(() => proiectNou.Numarubcontractori)" />
-        </div>
-    }
-
-    <div class="mb-3">
-        <label>Responsabili (selectează unul sau mai mulți)</label>
-        <InputSelectMultiple @bind="utilizatoriSelectati" class="form-select">
-            @foreach (var user in totiUtilizatorii)
-            {
-                <option value="@user.Id">@user.NumeComplet</option>
-            }
-        </InputSelectMultiple>
     </div>
 
     <button class="btn btn-primary" type="submit">Salvează</button>
 </EditForm>
 
 @code {
-    Proiect proiectNou = new();
-    List<string> utilizatoriSelectati = new();
-    List<AppUser> totiUtilizatorii = new();
-
+    Proiect proiectModel = new();
     string? mesajEroare = null;
     string? mesajSucces = null;
-    int numarAmendamenteSelectat = 0;
 
-    List<AmendamentInput> amendamente = new();
-
-    List<string> tipuriAmendamente = new()
-    {
-        "ModificareValoare",
-        "PrelungireContract",
-        "ModificareLivrabile"
-    };
-
-   
-   
-    protected override async Task OnInitializedAsync()
-    {
-        totiUtilizatorii = await DbContext.Users.ToListAsync();
-    }
-
-   
     async Task SalveazaProiect()
     {
         mesajEroare = null;
         mesajSucces = null;
 
-        bool exista = await DbContext.Proiecte.AnyAsync(p => p.Cod == proiectNou.Cod);
-        if (exista)
-        {
-            mesajEroare = "Codul proiectului există deja.";
-            return;
-        }
-
-        if (!proiectNou.ExistaAmendamente)
-        {
-            proiectNou.NumarAmendamente = 0;
-        }
-
-        if (!proiectNou.AreSubcontractor)
-        {
-            proiectNou.Numarubcontractori = 0;
-        }
+        var proiectNou = new ProiectEntity
+            {
+                NumeClient = proiectModel.NumeClient,
+                Domeniul = proiectModel.Domeniul,
+                ObiectulContractului = proiectModel.ObiectulContractului,
+                DataSemnareContract = proiectModel.DataSemnareContract,
+                DataIncheiereContract = proiectModel.DataIncheiereContract,
+                ValoareContract = proiectModel.ValoareContract,
+                NrLivrabile = proiectModel.NrLivrabile,
+                Status = proiectModel.Status switch
+                {
+                    StatusProiect.Nou => StatusProiectEntity.Nou,
+                    StatusProiect.InDesfasurare => StatusProiectEntity.InDesfasurare,
+                    StatusProiect.Suspendat => StatusProiectEntity.Suspendat,
+                    StatusProiect.Prelungit => StatusProiectEntity.Prelungit,
+                    StatusProiect.Intarziat => StatusProiectEntity.Intarziat,
+                    StatusProiect.Finalizat => StatusProiectEntity.Finalizat,
+                    StatusProiect.Anulat => StatusProiectEntity.Anulat,
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+                EsteClientPublic = proiectModel.EsteClientPublic,
+                AreSubcontractor = proiectModel.AreSubcontractor,
+                NumarSubcontractori = proiectModel.NumarSubcontractori ?? 0
+            };
 
         DbContext.Proiecte.Add(proiectNou);
         await DbContext.SaveChangesAsync();
 
-        // Salvare responsabili
-        foreach (var userId in utilizatoriSelectati)
-        {
-            var responsabil = new ResponsabilProiect
-            {
-                AppUserId = userId,
-                Cod = proiectNou.Cod,
-                DataAtribuire = DateTime.Now
-            };
-            DbContext.ResponsabiliProiecte.Add(responsabil);
-        }
-
-       
-        await DbContext.SaveChangesAsync();
-
         mesajSucces = "Proiectul a fost adăugat cu succes!";
-        proiectNou = new();
-        utilizatoriSelectati.Clear();
-        amendamente.Clear();
-        numarAmendamenteSelectat = 0;
+        proiectModel = new();
     }
 }

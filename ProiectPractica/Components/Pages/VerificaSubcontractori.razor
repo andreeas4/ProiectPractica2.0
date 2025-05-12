@@ -47,11 +47,21 @@ else
 }
 
 @code {
+    // 🔄 Folosim modelul UI pentru afișare, nu entitatea
     private List<Subcontractor> subcontractori = new();
 
     protected override async Task OnInitializedAsync()
     {
-        subcontractori = await DbContext.Subcontractori.ToListAsync();
+        // 🔄 Mapăm entitățile în modele de UI
+        subcontractori = await DbContext.Subcontractori
+            .Select(s => new Subcontractor
+                {
+                    Nume = s.Nume,
+                    Domeniu = s.Domeniu,
+                    Email = s.Email,
+                    Telefon = s.Telefon
+                })
+            .ToListAsync();
     }
 
     private async Task NavigheazaLaAdauga()

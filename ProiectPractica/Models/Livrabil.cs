@@ -1,14 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
-namespace ProiectPractica.Entities
+namespace ProiectPractica.Models
 {
     public class Livrabil
     {
-        [Key]
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Numele livrabilului este obligatoriu")]
         public string Nume { get; set; } = string.Empty;
 
         public string? Descriere { get; set; }
@@ -16,10 +15,7 @@ namespace ProiectPractica.Entities
         [DataType(DataType.Date)]
         public DateTime DataEstimata { get; set; }
 
-        public bool EstePredat { get; set; }
-
-        [ForeignKey(nameof(Proiect))]
-        public int Cod { get; set; }
-        public Proiect Proiect { get; set; } = null!;
+        
+        public string? NumeProiect { get; set; } // Opțional, pentru afișare în UI
     }
 }

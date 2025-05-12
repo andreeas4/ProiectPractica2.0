@@ -16,11 +16,11 @@ namespace ProiectPractica.Entities
 
         [Required]
         public string AppUserId { get; set; } = string.Empty;
-        public AppUser AppUser { get; set; } = null!;
+        public AppUserEntity AppUser { get; set; } = null!;
 
         [ForeignKey(nameof(Proiect))]
         public int Cod { get; set; }
-        public Proiect Proiect { get; set; } = null!;
+        public ProiectEntity Proiect { get; set; } = null!;
 
         public DateTime DataAtribuire { get; set; } = DateTime.Now;
 

@@ -1,40 +1,32 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ProiectPractica.Entities
+namespace ProiectPractica.Models
 {
     public class TaskProiect
     {
-        public TaskProiect()
-        {
-        }
+        
 
-        [Key]
-        public int Id { get; set; }
-
-        [Required, StringLength(200)]
+        [Required(ErrorMessage = "Descrierea task-ului este obligatorie.")]
+        [StringLength(200, ErrorMessage = "Descrierea poate avea maxim 200 de caractere.")]
         public string Descriere { get; set; } = string.Empty;
 
-        [DataType(DataType.Date)]
-        public DateTime DataStart { get; set; }
 
+        [Required(ErrorMessage = "Deadline-ul este obligatoriu.")]
         [DataType(DataType.Date)]
         public DateTime Deadline { get; set; }
 
-        [Required, StringLength(50)]
-        public string Status { get; set; } = string.Empty;
+        
 
-        [StringLength(100)]
+        [StringLength(100, ErrorMessage = "Numele responsabilului poate avea maxim 100 de caractere.")]
         public string? Responsabil { get; set; }
 
-        public bool EsteNotificare { get; set; }
-
-        [ForeignKey(nameof(Proiect))]
-        public int Cod { get; set; }
-        public Proiect Proiect { get; set; } = null!;
+        [Display(Name = "Trimite notificare")]
+        public bool EsteNotificare { get; set; } = false;
 
         
+        public int? CodProiect { get; set; }
 
         
+        public string? NumeProiect { get; set; } = string.Empty;
     }
 }

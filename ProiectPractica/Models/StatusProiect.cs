@@ -1,15 +1,28 @@
-﻿namespace ProiectPractica.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace ProiectPractica.Models
 {
     public enum StatusProiect
     {
+        [Display(Name = "Nou")]
         Nou,
-        InDesfasurare,
-        Suspendat,
-        Prelungit,
-        Intarziat,
-        Finalizat,
-        Anulat
 
+        [Display(Name = "În desfășurare")]
+        InDesfasurare,
+
+        [Display(Name = "Suspendat")]
+        Suspendat,
+
+        [Display(Name = "Prelungit")]
+        Prelungit,
+
+        [Display(Name = "Întârziat")]
+        Intarziat,
+
+        [Display(Name = "Finalizat")]
+        Finalizat,
+
+        [Display(Name = "Anulat")]
+        Anulat
     }
 }
-

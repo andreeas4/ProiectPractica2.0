@@ -62,12 +62,13 @@ namespace ProiectPractica.Migrations
                     ObiectulContractului = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     DataSemnareContract = table.Column<DateTime>(type: "datetime2", nullable: false),
                     DataIncheiereContract = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<int>(type: "int", maxLength: 50, nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
                     ExistaAmendamente = table.Column<bool>(type: "bit", nullable: false),
                     NumarAmendamente = table.Column<int>(type: "int", nullable: false),
                     EsteClientPublic = table.Column<bool>(type: "bit", nullable: false),
                     AreSubcontractor = table.Column<bool>(type: "bit", nullable: false),
-                    Numarubcontractori = table.Column<int>(type: "int", nullable: false),
+                    NumarSubcontractori = table.Column<int>(type: "int", nullable: false),
+                    NrLivrabile = table.Column<int>(type: "int", nullable: false),
                     ValoareContract = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
@@ -266,19 +267,18 @@ namespace ProiectPractica.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nume = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Domeniu = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Telefon = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Cod = table.Column<int>(type: "int", nullable: false)
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Telefon = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProiectEntityCod = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Subcontractori", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Subcontractori_Proiecte_Cod",
-                        column: x => x.Cod,
+                        name: "FK_Subcontractori_Proiecte_ProiectEntityCod",
+                        column: x => x.ProiectEntityCod,
                         principalTable: "Proiecte",
-                        principalColumn: "Cod",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Cod");
                 });
 
             migrationBuilder.CreateTable(
@@ -366,9 +366,9 @@ namespace ProiectPractica.Migrations
                 column: "Cod");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Subcontractori_Cod",
+                name: "IX_Subcontractori_ProiectEntityCod",
                 table: "Subcontractori",
-                column: "Cod");
+                column: "ProiectEntityCod");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Taskuri_Cod",

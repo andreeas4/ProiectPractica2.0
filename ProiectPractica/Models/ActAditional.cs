@@ -2,24 +2,19 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace ProiectPractica.Entities
+namespace ProiectPractica.Models
 {
     public abstract class ActAditional
     {
-        protected ActAditional()
-        {
-        }
-
-        [Key]
         public int Id { get; set; }
 
-        [Required, DataType(DataType.Date)]
+        [Required(ErrorMessage = "Data Actului este obligatorie")]
+        [DataType(DataType.Date)]
         public DateTime DataAct { get; set; }
 
-        [ForeignKey(nameof(Proiect))]
-        public int Cod { get; set; }
-        public Proiect Proiect { get; set; } = null!;
+        [Required(ErrorMessage = "Codul proiectului este obligatoriu")]
+        public int CodProiect { get; set; }
 
-
+        public string? NumeProiect { get; set; } // Opțional, pentru afișare în UI
     }
 }

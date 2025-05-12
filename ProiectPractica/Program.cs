@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProiectPractica.Components.Account;
-
-
 using ProiectPractica.Components;
 using ProiectPractica.Data;
 using ProiectPractica.Interfaces;
@@ -48,7 +46,7 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IRepository<ProjectEntity>, Repository<ProjectEntity>>();
+builder.Services.AddScoped<IRepository<ProiectEntity>, Repository<ProiectEntity>>();
 
 var app = builder.Build();
 
