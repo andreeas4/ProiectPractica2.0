@@ -1,8 +1,8 @@
 ﻿namespace ProiectPractica.Entities
 {
-    public class ModificareLivrabile : ActAditional
+    public class ModificareLivrabileEntity : ActAditionalEntity
     {
-        public ModificareLivrabile()
+        public ModificareLivrabileEntity()
         {
         }
 

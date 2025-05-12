@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProiectPractica.Entities
 {
-    public class Subcontractor
+    public class SubcontractorEntity
     {
         [Key]
         public int Id { get; set; }

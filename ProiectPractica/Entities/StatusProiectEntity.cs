@@ -1,6 +1,6 @@
 ﻿namespace ProiectPractica.Entities
 {
-    public enum StatusProiect
+    public enum StatusProiectEntity
     {
         Nou,
         InDesfasurare,

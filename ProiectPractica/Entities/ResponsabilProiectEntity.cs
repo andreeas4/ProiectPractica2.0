@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ProiectPractica.Entities
 {
-    public class ResponsabilProiect
+    public class ResponsabilProiectEntity
     {
-        public ResponsabilProiect()
+        public ResponsabilProiectEntity()
         {
         }
 

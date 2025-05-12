@@ -7,15 +7,15 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 namespace ProiectPractica.Entities
 {
-    public class Proiect
+    public class ProiectEntity
     {
-        public Proiect()
+        public ProiectEntity()
         {
-            ActeAditionale = new HashSet<ActAditional>();
-            Taskuri = new HashSet<TaskProiect>();
-            Livrabile = new HashSet<Livrabil>();
-            Subcontractori = new HashSet<Subcontractor>();
-            Responsabili = new HashSet<ResponsabilProiect>();   
+            ActeAditionale = new HashSet<ActAditionalEntity>();
+            Taskuri = new HashSet<TaskProiectEntity>();
+            Livrabile = new HashSet<LivrabilEntity>();
+            Subcontractori = new HashSet<SubcontractorEntity>();
+            Responsabili = new HashSet<ResponsabilProiectEntity>();   
         }
 
         
@@ -82,13 +82,13 @@ namespace ProiectPractica.Entities
         public decimal ValoareContract { get; set; }
         
         // Relații
-        public ICollection<ActAditional> ActeAditionale { get; set; }
-        public ICollection<TaskProiect> Taskuri { get; set; }
-        public ICollection<Livrabil> Livrabile { get; set; }
+        public ICollection<ActAditionalEntity> ActeAditionale { get; set; }
+        public ICollection<TaskProiectEntity> Taskuri { get; set; }
+        public ICollection<LivrabilEntity> Livrabile { get; set; }
 
-        public ICollection<Subcontractor> Subcontractori { get; set; }
+        public ICollection<SubcontractorEntity> Subcontractori { get; set; }
 
-        public ICollection<ResponsabilProiect> Responsabili { get; set; }
+        public ICollection<ResponsabilProiectEntity> Responsabili { get; set; }
 
         public override bool Equals(object? obj)
         {

@@ -2,11 +2,13 @@
 
 namespace ProiectPractica.Entities
 {
-    public class PrelungireContract : ActAditional
+    public class PrelungireContractEntity : ActAditionalEntity
     {
-        public Guid Id { get; set; }
+        public PrelungireContractEntity()
+        {
+        }
 
-        [Required(ErrorMessage = "Data încheierii este obligatorie")]
+        [Required]
         public DateTime NouaDataIncheiere { get; set; }
 
         public string? Observatii { get; set; }

@@ -2,9 +2,9 @@
 
 namespace ProiectPractica.Entities
 {
-    public class ModificareValoare : ActAditional
+    public class ModificareValoareEntity : ActAditionalEntity
     {
-        public ModificareValoare()
+        public ModificareValoareEntity()
         {
         }
 

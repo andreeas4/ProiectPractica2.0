@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ProiectPractica.Entities
 {
-    public abstract class ActAditional
+    public abstract class ActAditionalEntity
     {
-        protected ActAditional()
+        protected ActAditionalEntity()
         {
         }
 

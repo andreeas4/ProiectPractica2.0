@@ -3,18 +3,18 @@ using System.Collections.Generic;
 
 namespace ProiectPractica.Entities
 {
-    public class AppUser : IdentityUser
+    public class AppUserEntity : IdentityUser
     {
-        public AppUser()
+        public AppUserEntity()
         {
             ProiecteRepartizate = new List<ResponsabilProiect>();
         }
 
-        public AppUser(string userName) : base(userName)
+        public AppUserEntity(string userName) : base(userName)
         {
         }
 
-        public AppUser(string? numeComplet, ICollection<ResponsabilProiect> proiecteRepartizate) : this(numeComplet)
+        public AppUserEntity(string? numeComplet, ICollection<ResponsabilProiect> proiecteRepartizate) : this(numeComplet)
         {
             ProiecteRepartizate = proiecteRepartizate;
         }

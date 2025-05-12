@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ProiectPractica.Models
+namespace ProiectPractica.Entities
 {
     public class Livrabil
     {

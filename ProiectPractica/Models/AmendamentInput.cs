@@ -1,4 +1,4 @@
-﻿namespace ProiectPractica.Models
+﻿namespace ProiectPractica.Entities
 {
     public class AmendamentInput
     {

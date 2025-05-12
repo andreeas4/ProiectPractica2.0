@@ -1,25 +1,25 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ProiectPractica.Entities
 {
-    public abstract class ActAditional
+    public class LivrabilEntity
     {
-        protected ActAditional()
-        {
-        }
-
         [Key]
         public int Id { get; set; }
 
-        [Required, DataType(DataType.Date)]
-        public DateTime DataAct { get; set; }
+        [Required]
+        public string Nume { get; set; } = string.Empty;
+
+        public string? Descriere { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime DataEstimata { get; set; }
+
+        public bool EstePredat { get; set; }
 
         [ForeignKey(nameof(Proiect))]
         public int Cod { get; set; }
         public Proiect Proiect { get; set; } = null!;
-
-
     }
 }
