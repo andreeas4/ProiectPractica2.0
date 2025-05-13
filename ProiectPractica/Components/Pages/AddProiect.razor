@@ -23,31 +23,37 @@
     <div class="mb-3">
         <label>Nume Client</label>
         <InputText class="form-control" @bind-Value="proiectModel.NumeClient" />
+        <ValidationMessage For="@(() => proiectModel.NumeClient)" />
     </div>
 
     <div class="mb-3">
         <label>Domeniul proiectului</label>
         <InputText class="form-control" @bind-Value="proiectModel.Domeniul" />
+        <ValidationMessage For="@(() => proiectModel.Domeniul)" />
     </div>
 
     <div class="mb-3">
         <label>Obiectul contractului</label>
         <InputText class="form-control" @bind-Value="proiectModel.ObiectulContractului" />
+        <ValidationMessage For="@(() => proiectModel.ObiectulContractului)" />
     </div>
 
     <div class="mb-3">
         <label>Data Semnare</label>
         <InputDate class="form-control" @bind-Value="proiectModel.DataSemnareContract" />
+        <ValidationMessage For="@(() => proiectModel.DataSemnareContract)" />
     </div>
 
     <div class="mb-3">
         <label>Data Încheiere</label>
         <InputDate class="form-control" @bind-Value="proiectModel.DataIncheiereContract" />
+        <ValidationMessage For="@(() => proiectModel.DataIncheiereContract)" />
     </div>
 
     <div class="mb-3">
         <label>Valoare Contract</label>
         <InputNumber class="form-control" @bind-Value="proiectModel.ValoareContract" />
+        <ValidationMessage For="@(() => proiectModel.ValoareContract)" />
     </div>
 
     <div class="mb-3">

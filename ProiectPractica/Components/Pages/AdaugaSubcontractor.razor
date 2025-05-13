@@ -50,7 +50,14 @@
 </EditForm>
 
 @code {
-    private Subcontractor SubcontractorModel { get; set; } = new Subcontractor();
+    private Subcontractor SubcontractorModel { get; set; } = new()
+        {
+            Nume = string.Empty,
+            Domeniu = string.Empty,
+            Email = string.Empty,
+            Telefon = string.Empty
+        };
+
     private string? MesajEroare { get; set; }
     private string? MesajSucces { get; set; }
 
@@ -76,6 +83,15 @@
             await repository.SaveAsync();
 
             MesajSucces = "Subcontractorul a fost adăugat cu succes!";
+
+            // Reset model corect după salvare
+            SubcontractorModel = new()
+                {
+                    Nume = string.Empty,
+                    Domeniu = string.Empty,
+                    Email = string.Empty,
+                    Telefon = string.Empty
+                };
         }
         catch (Exception ex)
         {
