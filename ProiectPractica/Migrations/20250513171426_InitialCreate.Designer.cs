@@ -12,8 +12,8 @@ using ProiectPractica.Data;
 namespace ProiectPractica.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250513144044_verifSubcontr")]
-    partial class verifSubcontr
+    [Migration("20250513171426_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

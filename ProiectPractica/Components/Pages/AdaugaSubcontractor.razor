@@ -63,6 +63,10 @@
 
     private async Task OnSubmit()
     {
+        Console.WriteLine($"==> Nume: {SubcontractorModel.Nume}");
+        Console.WriteLine($"==> Domeniu: {SubcontractorModel.Domeniu}");
+        Console.WriteLine($"==> Email: {SubcontractorModel.Email}");
+        Console.WriteLine($"==> Telefon: {SubcontractorModel.Telefon}");
         MesajEroare = null;
         MesajSucces = null;
 
@@ -85,13 +89,13 @@
             MesajSucces = "Subcontractorul a fost adăugat cu succes!";
 
             // Reset model corect după salvare
-            SubcontractorModel = new()
-                {
-                    Nume = string.Empty,
-                    Domeniu = string.Empty,
-                    Email = string.Empty,
-                    Telefon = string.Empty
-                };
+            // SubcontractorModel = new()
+            //     {
+            //         Nume = string.Empty,
+            //         Domeniu = string.Empty,
+            //         Email = string.Empty,
+            //         Telefon = string.Empty
+            //     };
         }
         catch (Exception ex)
         {
