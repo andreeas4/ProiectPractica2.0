@@ -1,0 +1,65 @@
+﻿@page "/vizualizare-proiecte"
+@using ProiectPractica.Entities
+@inject ProiectPractica.Data.ApplicationDbContext DbContext
+@inject NavigationManager Navigation
+@using ProiectPractica.Entities
+@using ProiectPractica.Models
+@inject ProiectPractica.Data.ApplicationDbContext DbContext
+@inject IJSRuntime JSRuntime
+@using Microsoft.EntityFrameworkCore
+<h2>Listă Proiecte</h2>
+
+<button class="btn btn-primary mb-3" @onclick="NavigheazaLaAdauga">
+    + Adaugă Proiect
+</button>
+
+@if (proiecte == null)
+{
+    <p>Se încarcă proiectele...</p>
+}
+else if (!proiecte.Any())
+{
+    <p>Nu există proiecte înregistrate.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Cod</th>
+                <th>Client</th>
+                <th>Domeniu</th>
+                <th>Valoare Contract</th>
+                <th>Data Semnare</th>
+                <th>Data Încheiere</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var proiect in proiecte)
+            {
+                <tr>
+                    <td>@proiect.Cod</td>
+                    <td>@proiect.NumeClient</td>
+                    <td>@proiect.Domeniul</td>
+                    <td>@proiect.ValoareContract.ToString("C")</td>
+                    <td>@proiect.DataSemnareContract.ToShortDateString()</td>
+                    <td>@proiect.DataIncheiereContract.ToShortDateString()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<ProiectEntity> proiecte = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        proiecte = await DbContext.Proiecte.ToListAsync();
+    }
+
+    private void NavigheazaLaAdauga()
+    {
+        Navigation.NavigateTo("/adauga-proiect");
+    }
+}

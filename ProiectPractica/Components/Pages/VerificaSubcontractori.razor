@@ -47,25 +47,16 @@ else
 }
 
 @code {
-    // 🔄 Folosim modelul UI pentru afișare, nu entitatea
-    private List<Subcontractor> subcontractori = new();
+    private List<SubcontractorEntity> subcontractori = new();
 
     protected override async Task OnInitializedAsync()
     {
-        // 🔄 Mapăm entitățile în modele de UI
-        subcontractori = await DbContext.Subcontractori
-            .Select(s => new Subcontractor
-                {
-                    Nume = s.Nume,
-                    Domeniu = s.Domeniu,
-                    Email = s.Email,
-                    Telefon = s.Telefon
-                })
-            .ToListAsync();
+        subcontractori = await DbContext.Subcontractori.ToListAsync();
     }
 
     private async Task NavigheazaLaAdauga()
     {
-        await JSRuntime.InvokeVoidAsync("open", "/adauga-subcontractor", "_blank");
+        await Task.Yield();
+        Navigation.NavigateTo("/adauga-subcontractor", true);
     }
 }
