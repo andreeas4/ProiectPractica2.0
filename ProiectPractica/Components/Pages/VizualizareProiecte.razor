@@ -2,7 +2,7 @@
 @using ProiectPractica.Entities
 @inject ProiectPractica.Data.ApplicationDbContext DbContext
 @inject NavigationManager Navigation
-@using ProiectPractica.Entities
+
 @using ProiectPractica.Models
 @inject ProiectPractica.Data.ApplicationDbContext DbContext
 @inject IJSRuntime JSRuntime
@@ -53,11 +53,17 @@ else
 @code {
     private List<ProiectEntity> proiecte = new();
 
+    
     protected override async Task OnInitializedAsync()
     {
         proiecte = await DbContext.Proiecte.ToListAsync();
-    }
 
+        Console.WriteLine("Proiecte încărcate: " + proiecte.Count);
+        foreach (var p in proiecte)
+        {
+            Console.WriteLine($"Cod: {p.Cod}, Client: {p.NumeClient}, Domeniu: {p.Domeniul}");
+        }
+    }
     private void NavigheazaLaAdauga()
     {
         Navigation.NavigateTo("/adauga-proiect");
