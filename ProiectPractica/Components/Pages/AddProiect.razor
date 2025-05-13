@@ -85,7 +85,8 @@
 </EditForm>
 
 @code {
-    Proiect proiectModel = new();
+	[SupplyParameterFromForm]
+    Proiect proiectModel { get; set; } = new();
     string? mesajEroare = null;
     string? mesajSucces = null;
 

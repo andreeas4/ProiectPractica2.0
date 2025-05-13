@@ -50,6 +50,7 @@
 </EditForm>
 
 @code {
+    [SupplyParameterFromForm]
     private Subcontractor SubcontractorModel { get; set; } = new()
         {
             Nume = string.Empty,
@@ -89,13 +90,13 @@
             MesajSucces = "Subcontractorul a fost adăugat cu succes!";
 
             // Reset model corect după salvare
-            // SubcontractorModel = new()
-            //     {
-            //         Nume = string.Empty,
-            //         Domeniu = string.Empty,
-            //         Email = string.Empty,
-            //         Telefon = string.Empty
-            //     };
+             SubcontractorModel = new()
+                {
+                     Nume = string.Empty,
+                    Domeniu = string.Empty,
+                     Email = string.Empty,
+                     Telefon = string.Empty
+                 };
         }
         catch (Exception ex)
         {
