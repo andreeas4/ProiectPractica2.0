@@ -16,6 +16,7 @@ namespace ProiectPractica.Entities
 
         [Required]
         public string AppUserId { get; set; } = string.Empty;
+        public string NumeUtilizator { get; set; } = string.Empty;
         public AppUserEntity AppUser { get; set; } = null!;
 
         [ForeignKey(nameof(Proiect))]

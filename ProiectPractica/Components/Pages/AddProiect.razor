@@ -55,7 +55,7 @@
         <InputNumber class="form-control" @bind-Value="proiectModel.ValoareContract" />
         <ValidationMessage For="@(() => proiectModel.ValoareContract)" />
     </div>
-
+    
     <div class="mb-3">
         <label>Număr livrabile</label>
         <InputNumber class="form-control" @bind-Value="proiectModel.NrLivrabile" />
@@ -89,7 +89,8 @@
     Proiect proiectModel { get; set; } = new();
     string? mesajEroare = null;
     string? mesajSucces = null;
-
+   
+    
     async Task SalveazaProiect()
     {
         mesajEroare = null;
@@ -117,7 +118,8 @@
                 },
                 EsteClientPublic = proiectModel.EsteClientPublic,
                 AreSubcontractor = proiectModel.AreSubcontractor,
-                NumarSubcontractori = proiectModel.NumarSubcontractori ?? 0
+				//ResponsabilSelectat=proiectModel.Responsabil
+                
             };
 
         DbContext.Proiecte.Add(proiectNou);

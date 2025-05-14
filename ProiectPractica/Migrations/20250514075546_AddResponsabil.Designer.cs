@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProiectPractica.Data;
 
@@ -11,9 +12,11 @@ using ProiectPractica.Data;
 namespace ProiectPractica.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250514075546_AddResponsabil")]
+    partial class AddResponsabil
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -369,7 +372,8 @@ namespace ProiectPractica.Migrations
 
                     b.HasIndex("AppUserId");
 
-                    b.HasIndex("Cod");
+                    b.HasIndex("Cod")
+                        .IsUnique();
 
                     b.ToTable("ResponsabiliProiecte");
                 });
@@ -572,8 +576,8 @@ namespace ProiectPractica.Migrations
                         .IsRequired();
 
                     b.HasOne("ProiectPractica.Entities.ProiectEntity", "Proiect")
-                        .WithMany("Responsabili")
-                        .HasForeignKey("Cod")
+                        .WithOne("Responsabil")
+                        .HasForeignKey("ProiectPractica.Entities.ResponsabilProiectEntity", "Cod")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -611,7 +615,8 @@ namespace ProiectPractica.Migrations
 
                     b.Navigation("Livrabile");
 
-                    b.Navigation("Responsabili");
+                    b.Navigation("Responsabil")
+                        .IsRequired();
 
                     b.Navigation("Subcontractori");
 

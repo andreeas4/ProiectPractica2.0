@@ -40,10 +40,19 @@ namespace ProiectPractica.Data
                 .HasValue<PrelungireContractEntity>("PrelungireContract")
                 .HasValue<ModificareLivrabileEntity>("ModificareLivrabile");
 
-            modelBuilder.Entity<ProiectEntity>()
-                .HasMany(p => p.Responsabili)
-                .WithOne(r => r.Proiect)
-                .HasForeignKey(r => r.Cod)
+            modelBuilder.Entity<ResponsabilProiectEntity>()
+    .HasKey(rp => rp.Id); // sau composite key dacă vrei
+
+            modelBuilder.Entity<ResponsabilProiectEntity>()
+                .HasOne(rp => rp.AppUser)
+                .WithMany(u => u.ProiecteRepartizate)
+                .HasForeignKey(rp => rp.AppUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ResponsabilProiectEntity>()
+                .HasOne(rp => rp.Proiect)
+                .WithMany(p => p.Responsabili)
+                .HasForeignKey(rp => rp.Cod)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ProiectEntity>()

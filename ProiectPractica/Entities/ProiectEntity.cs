@@ -15,7 +15,7 @@ namespace ProiectPractica.Entities
             Taskuri = new HashSet<TaskProiectEntity>();
             Livrabile = new HashSet<LivrabilEntity>();
             Subcontractori = new HashSet<SubcontractorEntity>();
-            Responsabili = new HashSet<ResponsabilProiectEntity>();   
+              
         }
 
         
@@ -88,7 +88,7 @@ namespace ProiectPractica.Entities
 
         public ICollection<SubcontractorEntity> Subcontractori { get; set; }
 
-        public ICollection<ResponsabilProiectEntity> Responsabili { get; set; }
+        public ICollection<ResponsabilProiectEntity> Responsabili { get; set; } = new HashSet<ResponsabilProiectEntity>();
 
         public override bool Equals(object? obj)
         {

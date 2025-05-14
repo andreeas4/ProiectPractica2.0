@@ -8,6 +8,7 @@ using ProiectPractica.Interfaces;
 using ProiectPractica.Repository;
 using Microsoft.CodeAnalysis;
 using ProiectPractica.Entities;
+using MudBlazor.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,9 +17,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpClient();
 
 
+
 // Alte configurări...
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddMudServices();
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();

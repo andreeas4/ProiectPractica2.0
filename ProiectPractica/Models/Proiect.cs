@@ -30,5 +30,8 @@ namespace ProiectPractica.Models
         public bool EsteClientPublic { get; set; }
         public bool AreSubcontractor { get; set; }
         public int? NumarSubcontractori { get; set; }
+
+        [Required(ErrorMessage = "Responsabilul contractului este obligatoriu.")]
+        public ResponsabilProiect Responsabil { get; set; }
     }
 }
