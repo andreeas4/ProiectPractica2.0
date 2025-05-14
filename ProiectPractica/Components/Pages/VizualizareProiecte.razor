@@ -1,17 +1,17 @@
 ﻿@page "/vizualizare-proiecte"
 @using ProiectPractica.Entities
 @inject ProiectPractica.Data.ApplicationDbContext DbContext
-@inject NavigationManager Navigation
-
+@inject NavigationManager NavigationManager
 @using ProiectPractica.Models
 @inject ProiectPractica.Data.ApplicationDbContext DbContext
 @inject IJSRuntime JSRuntime
 @using Microsoft.EntityFrameworkCore
+
 <h2>Listă Proiecte</h2>
 
-<button class="btn btn-primary mb-3" @onclick="NavigheazaLaAdauga">
-    + Adaugă Proiect
-</button>
+<a class="btn btn-success" href="@NavigationManager.ToAbsoluteUri("/adauga-proiect")">
+    <i class="bi bi-plus-circle"></i> Adaugă Proiect
+</a>
 
 @if (proiecte == null)
 {
@@ -29,11 +29,17 @@ else
                 <th>Cod</th>
                 <th>Client</th>
                 <th>Domeniu</th>
-                <th>Valoare Contract</th>
+                <th>Obiect Contract</th>
+                <th>Valoare</th>
                 <th>Data Semnare</th>
                 <th>Data Încheiere</th>
+                <th>Status</th
+                <th>Livrabile</th>
+                <th>Subcontractori</th>
+                <th>Client Public</th>
             </tr>
         </thead>
+
         <tbody>
             @foreach (var proiect in proiecte)
             {
@@ -41,9 +47,14 @@ else
                     <td>@proiect.Cod</td>
                     <td>@proiect.NumeClient</td>
                     <td>@proiect.Domeniul</td>
+                    <td>@proiect.ObiectulContractului</td>
                     <td>@proiect.ValoareContract.ToString("C")</td>
                     <td>@proiect.DataSemnareContract.ToShortDateString()</td>
                     <td>@proiect.DataIncheiereContract.ToShortDateString()</td>
+                    <td>@proiect.Status.ToString()</td>
+                    <td>@proiect.NrLivrabile</td>
+                    <td>@(proiect.AreSubcontractor ? "Da" : "Nu")</td>
+                    <td>@(proiect.EsteClientPublic ? "Da" : "Nu")</td>
                 </tr>
             }
         </tbody>
@@ -52,7 +63,7 @@ else
 
 @code {
     private List<ProiectEntity> proiecte = new();
-
+    
     
     protected override async Task OnInitializedAsync()
     {
@@ -64,8 +75,5 @@ else
             Console.WriteLine($"Cod: {p.Cod}, Client: {p.NumeClient}, Domeniu: {p.Domeniul}");
         }
     }
-    private void NavigheazaLaAdauga()
-    {
-        Navigation.NavigateTo("/adauga-proiect");
-    }
+    
 }
