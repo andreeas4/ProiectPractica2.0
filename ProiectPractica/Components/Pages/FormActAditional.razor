@@ -1,0 +1,66 @@
+﻿@using ProiectPractica.Models
+@using MudBlazor
+@using Microsoft.AspNetCore.Components
+
+<MudDialog>
+    <DialogContent>
+        <MudSelect T="TipAmendament" Label="Tip act adițional" @bind-Value="Amendament.Tip">
+            <MudSelectItem Value="TipAmendament.ModificareValoare">Modificare Valoare</MudSelectItem>
+            <MudSelectItem Value="TipAmendament.PrelungireContract">Prelungire Contract</MudSelectItem>
+            <MudSelectItem Value="TipAmendament.ModificareLivrabile">Modificare Livrabile</MudSelectItem>
+        </MudSelect>
+
+        @if (Amendament.Tip == TipAmendament.ModificareValoare)
+        {
+            <MudDatePicker T="DateTime" Date="@Amendament.ModificareValoare!.DataAct" DateChanged="@(e => Amendament.ModificareValoare!.DataAct = e ?? DateTime.Now)" Label="Data Actului" Required="true" />
+            <MudTextField T="decimal" @bind-Value="Amendament.ModificareValoare!.ValoareNoua" Label="Valoare nouă" Required="true" />
+            <MudTextField T="string" @bind-Value="Amendament.ModificareValoare!.Motiv" Label="Motiv" />
+        }
+        else if (Amendament.Tip == TipAmendament.PrelungireContract)
+        {
+            <MudDatePicker T="DateTime" Date="@Amendament.PrelungireContract!.DataAct" DateChanged="@(e => Amendament.PrelungireContract!.DataAct = e ?? DateTime.Now)" Label="Data Actului" Required="true" />
+            <MudDatePicker T="DateTime" Date="@Amendament.PrelungireContract!.NouaDataIncheiere" DateChanged="@(e => Amendament.PrelungireContract!.NouaDataIncheiere = e ?? DateTime.Now)" Label="Noua dată încheiere" Required="true" />
+            <MudTextField T="string" @bind-Value="Amendament.PrelungireContract!.Observatii" Label="Observații" />
+        }
+        else if (Amendament.Tip == TipAmendament.ModificareLivrabile)
+        {
+            <MudDatePicker T="DateTime" Date="@Amendament.ModificareLivrabile!.DataAct" DateChanged="@(e => Amendament.ModificareLivrabile!.DataAct = e ?? DateTime.Now)" Label="Data Actului" Required="true" />
+            <MudSwitch T="bool" @bind-Checked="Amendament.ModificareLivrabile!.EsteAdaugare" Color="Color.Primary" Label="Este adăugare?" />
+        }
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="AdaugaSiInchide" Color="Color.Primary">Adaugă și închide</MudButton>
+        <MudButton OnClick="AdaugaSiContinua" Color="Color.Secondary" Variant="Variant.Outlined">Adaugă următorul</MudButton>
+        
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IDialogReference MudDialog { get; set; } = default!;
+    [Parameter] public int Index { get; set; }
+
+    private AmendamentInput Amendament = new();
+
+    private void AdaugaSiInchide()
+    {
+        MudDialog.Close(DialogResult.Ok(GetSelectedAct()));
+    }
+
+    private void AdaugaSiContinua()
+    {
+        MudDialog.Close(DialogResult.Ok(GetSelectedAct()));
+    }
+
+    private ActAditional GetSelectedAct()
+    {
+        return Amendament.Tip switch
+        {
+            TipAmendament.ModificareValoare => Amendament.ModificareValoare!,
+            TipAmendament.PrelungireContract => Amendament.PrelungireContract!,
+            TipAmendament.ModificareLivrabile => Amendament.ModificareLivrabile!,
+            _ => throw new InvalidOperationException("Tip necunoscut")
+        };
+    }
+}
+}

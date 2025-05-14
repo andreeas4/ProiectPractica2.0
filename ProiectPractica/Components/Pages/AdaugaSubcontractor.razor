@@ -5,6 +5,7 @@
 @using ProiectPractica.Models
 @using Microsoft.EntityFrameworkCore
 @inject IRepository<SubcontractorEntity> repository
+@inject NavigationManager NavigationManager
 
 <h2>Adaugă Subcontractor</h2>
 
@@ -46,7 +47,14 @@
         <ValidationMessage For="@(() => SubcontractorModel.Telefon)" />
     </div>
 
-    <button class="btn btn-primary" type="submit">Salvează</button>
+    <div class="btn-group" role="group">
+        <button class="btn btn-primary" type="submit">Salvează</button>
+        <a class="btn btn-sm btn-outline-primary"
+           href="@NavigationManager.ToAbsoluteUri($"/verificare-subcontractori")">
+            Vizualizeaza Subcontractorii
+        </a>
+    </div>
+
 </EditForm>
 
 @code {

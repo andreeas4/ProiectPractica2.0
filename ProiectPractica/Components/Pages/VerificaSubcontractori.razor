@@ -6,12 +6,14 @@
 @inject Microsoft.Extensions.Logging.ILogger<VerificaSubcontractori> Logger
 @inject IJSRuntime JSRuntime
 @using Microsoft.EntityFrameworkCore
+@inject NavigationManager NavigationManager
 
 <h2>Listă Subcontractori</h2>
 
-<button class="btn btn-success mb-3" @onclick="NavigheazaLaAdauga">
-    + Adaugă Subcontractor
-</button>
+<a class="btn btn-success" href="@NavigationManager.ToAbsoluteUri("/adauga-subcontractor")">
+    <i class="bi bi-plus-circle"></i> Adaugă Subcontractor
+</a>
+
 
 @if (subcontractori == null)
 {

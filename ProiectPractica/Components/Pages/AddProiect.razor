@@ -3,6 +3,7 @@
 @using ProiectPractica.Entities
 @inject ProiectPractica.Data.ApplicationDbContext DbContext
 @using Microsoft.EntityFrameworkCore
+@inject NavigationManager NavigationManager
 
 <h3>Adaugă Proiect</h3>
 
@@ -80,8 +81,14 @@
         <InputCheckbox class="form-check-input" @bind-Value="proiectModel.AreSubcontractor" />
         <label class="form-check-label">Are subcontractor?</label>
     </div>
-
-    <button class="btn btn-primary" type="submit">Salvează</button>
+    <div class="btn-group" role="group">
+		<button class="btn btn-primary" type="submit">Salvează</button>
+        <a class="btn btn-sm btn-outline-primary"
+           href="@NavigationManager.ToAbsoluteUri($"/vizualizare-proiecte")">
+            Vizualizeaza proiectele
+        </a>
+    </div>
+    
 </EditForm>
 
 @code {

@@ -7,19 +7,19 @@
 @inject IJSRuntime JSRuntime
 @using Microsoft.EntityFrameworkCore
 
-<h2>Listă Proiecte</h2>
+<h2>Toate Contractele</h2>
 
 <a class="btn btn-success" href="@NavigationManager.ToAbsoluteUri("/adauga-proiect")">
-    <i class="bi bi-plus-circle"></i> Adaugă Proiect
+    <i class="bi bi-plus-circle"></i> + Adaugă Contract
 </a>
 
 @if (proiecte == null)
 {
-    <p>Se încarcă proiectele...</p>
+    <p>Se încarcă contractele...</p>
 }
 else if (!proiecte.Any())
 {
-    <p>Nu există proiecte înregistrate.</p>
+    <p>Nu există contracte înregistrate.</p>
 }
 else
 {
