@@ -1,12 +1,14 @@
 ﻿@page "/verificare-subcontractori"
 @using ProiectPractica.Entities
 @using ProiectPractica.Models
+@using ProiectPractica.Interfaces
 @inject ProiectPractica.Data.ApplicationDbContext DbContext
 @inject NavigationManager Navigation
 @inject Microsoft.Extensions.Logging.ILogger<VerificaSubcontractori> Logger
 @inject IJSRuntime JSRuntime
 @using Microsoft.EntityFrameworkCore
 @inject NavigationManager NavigationManager
+@inject IRepository<SubcontractorEntity> Repository
 
 <h2>Listă Subcontractori</h2>
 
@@ -32,33 +34,82 @@ else
                 <th>Domeniu</th>
                 <th>Email</th>
                 <th>Telefon</th>
+                <th>Acțiuni</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var subcontractor in subcontractori)
+            @foreach (var subcontractor in subcontractori.Where(s => s.Id != 0 && !string.IsNullOrWhiteSpace(s.Nume)))
             {
                 <tr>
                     <td>@subcontractor.Nume</td>
                     <td>@subcontractor.Domeniu</td>
                     <td>@subcontractor.Email</td>
                     <td>@subcontractor.Telefon</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" @onclick="() => CereConfirmareStergere(subcontractor.Id, subcontractor.Nume)">
+                            Șterge
+                        </button>
+                    </td>
                 </tr>
             }
         </tbody>
     </table>
+    @if (triggerConfirmare)
+    {
+        <div class="alert alert-warning">
+            Sigur vrei să ștergi subcontractorul <strong>@numeDeSters</strong>?
+            <button class="btn btn-danger btn-sm" @onclick="StergeSubcontractor">Da, șterge</button>
+            <button class="btn btn-secondary btn-sm" @onclick="AnuleazaStergere">Anulează</button>
+        </div>
+    }
 }
 
 @code {
     private List<SubcontractorEntity> subcontractori = new();
-
+    private int? idDeSters = null;
+    private string? numeDeSters = null;
+    private bool triggerConfirmare = false;
     protected override async Task OnInitializedAsync()
     {
-        subcontractori = await DbContext.Subcontractori.ToListAsync();
+        subcontractori = await DbContext.Subcontractori
+        .Where(s => s.Id != 0 && !string.IsNullOrWhiteSpace(s.Nume))
+        .ToListAsync();
+        
     }
+
+   
+    private async Task CereConfirmareStergere(int id, string nume)
+    {
+        idDeSters = id;
+        numeDeSters = nume;
+        triggerConfirmare = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void AnuleazaStergere()
+    {
+        triggerConfirmare = false;
+    }
+
+    private async Task StergeSubcontractor()
+    {
+        var subcontractor = await DbContext.Subcontractori.FindAsync(idDeSters);
+        if (subcontractor != null)
+        {
+            DbContext.Subcontractori.Remove(subcontractor);
+            await DbContext.SaveChangesAsync();
+
+            subcontractori.Remove(subcontractor);
+        }
+        triggerConfirmare = false;
+    }
+
 
     private async Task NavigheazaLaAdauga()
     {
         await Task.Yield();
         Navigation.NavigateTo("/adauga-subcontractor", true);
     }
+
+   
 }
