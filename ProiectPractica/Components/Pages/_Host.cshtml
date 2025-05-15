@@ -1,26 +1,30 @@
-﻿@namespace ProiectPractica
+﻿@page "/"
+@namespace ProiectPractica.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using Microsoft.AspNetCore.Components.Web
+@using ProiectPractica
+@{
+    Layout = null;
+}
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
+    <title>Proiect Practica</title>
+
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="ProiectPractica.styles.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
-    <HeadOutlet />
+
+    <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
-
 <body>
-    <Routes />
-    <script src="_framework/blazor.web.js"></script>
-
+    <component type="typeof(App)" render-mode="ServerPrerendered" />
+    <script src="_framework/blazor.server.js"></script>
 </body>
-
 </html>
-
-
-
