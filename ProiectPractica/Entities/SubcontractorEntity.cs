@@ -17,9 +17,10 @@ namespace ProiectPractica.Entities
 
         public string? Email { get; set; } // <- nu este obligatoriu
         public string? Telefon { get; set; } // <- nu este obligatoriu
+        public ICollection<ProiectEntity> Proiecte { get; set; } = new HashSet<ProiectEntity>();
 
-       
-    }
+
+	}
 }
 
 

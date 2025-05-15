@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ProiectPractica.Entities;
+using System.ComponentModel.DataAnnotations;
 
 namespace ProiectPractica.Models
 {
@@ -29,9 +30,14 @@ namespace ProiectPractica.Models
 
         public bool EsteClientPublic { get; set; }
         public bool AreSubcontractor { get; set; }
-        public int? NumarSubcontractori { get; set; }
+        public int NumarSubcontractori { get; set; }
+        public int NumarAmendamente { get; set; }
+        public bool ExistaAmendamente { get; set; }
+        public List<Subcontractor> Subcontractori { get; set; } = new();
 
         [Required(ErrorMessage = "Responsabilul contractului este obligatoriu.")]
-        public ResponsabilProiect Responsabil { get; set; }
-    }
+        public ResponsabilProiect? Responsabil { get; set; }
+		
+		public List<int> SelectedSubcontractorIds { get; set; } = new();
+	}
 }

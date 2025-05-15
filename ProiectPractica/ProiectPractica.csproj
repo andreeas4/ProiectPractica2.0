@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <Content Remove="Components\Pages\FormActAditional.razor" />
+    <Content Remove="Components\Pages\TEST.razor" />
   </ItemGroup>
 
   <ItemGroup>

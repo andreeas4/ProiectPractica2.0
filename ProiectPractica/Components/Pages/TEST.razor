@@ -1,0 +1,31 @@
+﻿@page "/test"
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<h3>Test JS</h3>
+
+<button @onclick="TestJS">Test JS</button>
+
+@code {
+    async Task TestJS()
+    {
+        var res = await JSRuntime.InvokeAsync<int[]>("getSelectedValues", "subcontractoriSelect");
+        Console.WriteLine($"Selected values: {string.Join(", ", res)}");
+    }
+}
+
+<script>
+    window.getSelectedValues = function (selectId) {
+        var select = document.getElementById(selectId);
+        var result = [];
+        if (select) {
+            var options = select.options;
+            for (var i = 0; i < options.length; i++) {
+                if (options[i].selected) {
+                    result.push(parseInt(options[i].value));
+                }
+            }
+        }
+        return result;
+    };
+</script>

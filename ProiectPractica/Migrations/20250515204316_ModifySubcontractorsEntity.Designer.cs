@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProiectPractica.Data;
 
@@ -11,9 +12,11 @@ using ProiectPractica.Data;
 namespace ProiectPractica.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250515204316_ModifySubcontractorsEntity")]
+    partial class ModifySubcontractorsEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,21 +156,6 @@ namespace ProiectPractica.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("ProiectEntitySubcontractorEntity", b =>
-                {
-                    b.Property<int>("ProiecteCod")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SubcontractoriId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ProiecteCod", "SubcontractoriId");
-
-                    b.HasIndex("SubcontractoriId");
-
-                    b.ToTable("ProiectSubcontractori", (string)null);
                 });
 
             modelBuilder.Entity("ProiectPractica.Entities.ActAditionalEntity", b =>
@@ -410,10 +398,15 @@ namespace ProiectPractica.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("ProiectEntityCod")
+                        .HasColumnType("int");
+
                     b.Property<string>("Telefon")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ProiectEntityCod");
 
                     b.ToTable("Subcontractori");
                 });
@@ -551,21 +544,6 @@ namespace ProiectPractica.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ProiectEntitySubcontractorEntity", b =>
-                {
-                    b.HasOne("ProiectPractica.Entities.ProiectEntity", null)
-                        .WithMany()
-                        .HasForeignKey("ProiecteCod")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ProiectPractica.Entities.SubcontractorEntity", null)
-                        .WithMany()
-                        .HasForeignKey("SubcontractoriId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("ProiectPractica.Entities.ActAditionalEntity", b =>
                 {
                     b.HasOne("ProiectPractica.Entities.ProiectEntity", "Proiect")
@@ -607,6 +585,13 @@ namespace ProiectPractica.Migrations
                     b.Navigation("Proiect");
                 });
 
+            modelBuilder.Entity("ProiectPractica.Entities.SubcontractorEntity", b =>
+                {
+                    b.HasOne("ProiectPractica.Entities.ProiectEntity", null)
+                        .WithMany("Subcontractori")
+                        .HasForeignKey("ProiectEntityCod");
+                });
+
             modelBuilder.Entity("ProiectPractica.Entities.TaskProiectEntity", b =>
                 {
                     b.HasOne("ProiectPractica.Entities.ProiectEntity", "Proiect")
@@ -630,6 +615,8 @@ namespace ProiectPractica.Migrations
                     b.Navigation("Livrabile");
 
                     b.Navigation("Responsabili");
+
+                    b.Navigation("Subcontractori");
 
                     b.Navigation("Taskuri");
                 });
