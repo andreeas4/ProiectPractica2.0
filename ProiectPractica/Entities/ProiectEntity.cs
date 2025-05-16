@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+
 namespace ProiectPractica.Entities
 {
     public class ProiectEntity
@@ -15,15 +13,12 @@ namespace ProiectPractica.Entities
             Taskuri = new HashSet<TaskProiectEntity>();
             Livrabile = new HashSet<LivrabilEntity>();
             Subcontractori = new HashSet<SubcontractorEntity>();
-              
+            Responsabili = new HashSet<ResponsabilProiectEntity>(); // Fixed to use ResponsabilProiectEntity
         }
 
-        
         [Key]
         public int Cod { get; set; }
-        
 
-        
         [Required]
         [StringLength(100)]
         [Display(Name = "Nume client")]
@@ -58,9 +53,6 @@ namespace ProiectPractica.Entities
         [Range(0, int.MaxValue, ErrorMessage = "Numărul de amendamente trebuie să fie pozitiv.")]
         public int NumarAmendamente { get; set; }
 
-        
-        
-
         [Required]
         [Display(Name = "Este client public?")]
         public bool EsteClientPublic { get; set; }
@@ -71,7 +63,7 @@ namespace ProiectPractica.Entities
 
         [Display(Name = "Număr subcontractori")]
         [Range(0, int.MaxValue, ErrorMessage = "Numărul de subcontractori trebuie să fie pozitiv.")]
-        public int NumarSubcontractori { get; set; }  // Copiat exact cum e folosit
+        public int NumarSubcontractori { get; set; }
 
         [Range(0, int.MaxValue, ErrorMessage = "Numărul de livrabile trebuie să fie pozitiv.")]
         public int NrLivrabile { get; set; }
@@ -80,15 +72,16 @@ namespace ProiectPractica.Entities
         [Range(0, double.MaxValue)]
         [DataType(DataType.Currency)]
         public decimal ValoareContract { get; set; }
-        public AppUserEntity? ResponsabilProiect { get; set; }
-        // Relații
+
+        // Removed ResponsabilProiect single navigation property (if not needed)
+        // public AppUserEntity? ResponsabilProiect { get; set; }
+
+        // Relationships
         public ICollection<ActAditionalEntity> ActeAditionale { get; set; }
         public ICollection<TaskProiectEntity> Taskuri { get; set; }
         public ICollection<LivrabilEntity> Livrabile { get; set; }
-
-        public virtual ICollection<SubcontractorEntity> Subcontractori { get; set; } = new List<SubcontractorEntity>();
-
-        public ICollection<ResponsabilProiectEntity> Responsabili { get; set; } = new HashSet<ResponsabilProiectEntity>();
+        public virtual ICollection<SubcontractorEntity> Subcontractori { get; set; }
+        public ICollection<ResponsabilProiectEntity> Responsabili { get; set; } // Fixed to use ResponsabilProiectEntity
 
         public override bool Equals(object? obj)
         {
@@ -106,4 +99,3 @@ namespace ProiectPractica.Entities
         }
     }
 }
-

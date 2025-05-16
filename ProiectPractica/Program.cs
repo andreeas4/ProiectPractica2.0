@@ -57,6 +57,7 @@ builder.Services.AddLogging();
 // Other services
 builder.Services.AddScoped<IRepository<SubcontractorEntity>, Repository<SubcontractorEntity>>();
 builder.Services.AddScoped<IRepository<ProiectEntity>, Repository<ProiectEntity>>();
+builder.Services.AddScoped<IRepository<UserSelectedProject>, Repository<UserSelectedProject>>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

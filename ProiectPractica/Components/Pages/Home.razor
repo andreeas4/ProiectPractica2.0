@@ -9,23 +9,23 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
+@inject ProiectPractica.Interfaces.IRepository<ProiectPractica.Entities.UserSelectedProject> UserSelectedProjectRepository // Updated namespace
 @using Microsoft.EntityFrameworkCore
 @using ProiectPractica.Interfaces
 @rendermode InteractiveServer
 <PageTitle>Home</PageTitle>
-
-
-
 @if (currentUser == null)
 {
     <p>Please <a href="/Account/Login">log in</a> to view your projects.</p>
 }
 else
 {
-    <h2>My Projects</h2>
+    
+   
+    <h2>Contractele Mele</h2>
 
     <!-- Select My Projects -->
-    <h3>Select Your Assigned Projects</h3>
+    <p>Selecteaza contractele tale</p>
     @if (myProiecte.Any())
     {
         <div class="mb-3">
@@ -37,17 +37,15 @@ else
                 }
             </select>
         </div>
-        <button @onclick="async () => await AddSelectedProject()" class="btn btn-secondary" disabled="@(selectedProjectId == 0)">
-            Add Selected Project
-        </button>
+        <button @onclick="AddSelectedProject" class="btn btn-secondary">Adauga Contact</button>
     }
     else
     {
-        <p>No projects available.</p>
+        <p>Nu esti responsabil de niciun contract.</p>
     }
 
     <!-- Display Selected Projects (Card Layout like Vizualizare-Proiecte) -->
-    <h3>Selected Projects</h3>
+    <h3>Contractele Tale</h3>
     @if (selectedProiecte.Any())
     {
         <div class="row row-cols-1 row-cols-md-2 g-4">
@@ -86,37 +84,39 @@ else
         <p>No projects selected.</p>
     }
 }
-
+<!-- Rest of the Razor markup remains unchanged -->
 @code {
     private AppUserEntity? currentUser;
-    private List<ProiectEntity> myProiecte = new(); // Toate proiectele din DB
+    private List<ProiectEntity> myProiecte = new(); // Projects where user is ResponsabilProiect
     private int selectedProjectId;
-    private List<ProiectEntity> selectedProiecte = new(); // Proiectele atribuite utilizatorului
+    private List<ProiectEntity> selectedProiecte = new();
 
     private int GetLuniRamase(DateTime dataIncheiere)
     {
         var dataCurenta = DateTime.Now;
         var diferenta = dataIncheiere.Year * 12 + dataIncheiere.Month - (dataCurenta.Year * 12 + dataCurenta.Month);
-        return diferenta > 0 ? diferenta : 0; // Lunile rămase >= 0
+        return diferenta > 0 ? diferenta : 0; // Ensure non-negative months
     }
 
     protected override async Task OnInitializedAsync()
     {
         currentUser = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext);
-
         if (currentUser != null)
         {
-            // Încarcă toate proiectele pentru dropdown
-            myProiecte = await ProiectRepository.GetAllQueryable()
-                .ToListAsync();
+            // Load projects where user is ResponsabilProiect
+            var responsibleQuery = ProiectRepository.GetAllQueryable()
+                .Include(p => p.Responsabili)
+                .Where(p => p.Responsabili.Any(rp => rp.AppUserId == currentUser.Id));
+            myProiecte = await responsibleQuery.ToListAsync();
+            Logger.LogInformation("Loaded {Count} responsible projects for user {Email}: {@Proiecte}", myProiecte.Count, currentUser.Email, myProiecte);
 
-            // Încarcă proiectele unde utilizatorul este responsabil pentru listă
-            selectedProiecte = await ProiectRepository.GetAllQueryable()
-                .Where(p => p.ResponsabilProiect != null && p.ResponsabilProiect.Id == currentUser.Id)
+            // Load selected projects from UserSelectedProject
+            var selectedQuery = UserSelectedProjectRepository.GetAllQueryable()
+                .Include(up => up.Proiect);
+            var userSelections = await selectedQuery
+                .Where(up => up.UserId == currentUser.Id)
                 .ToListAsync();
-
-            Logger.LogInformation("Loaded {Count} total projects", myProiecte.Count);
-            Logger.LogInformation("Loaded {Count} assigned projects for user {Email}", selectedProiecte.Count, currentUser.Email);
+            selectedProiecte = userSelections.Select(up => up.Proiect).ToList();
         }
         else
         {
@@ -126,49 +126,45 @@ else
 
     private async Task AddSelectedProject()
     {
-        if (selectedProjectId != 0 && currentUser != null)
+        if (selectedProjectId != 0 && myProiecte.Any(p => p.Cod == selectedProjectId))
         {
-            var proiect = await ProiectRepository.GetAllQueryable()
-                .Include(p => p.Responsabili)
-                .FirstOrDefaultAsync(p => p.Cod == selectedProjectId);
-
-            if (proiect != null)
+            var selected = myProiecte.First(p => p.Cod == selectedProjectId);
+            if (!selectedProiecte.Contains(selected)) // Avoid duplicates
             {
-                bool esteResponsabil = proiect.Responsabili.Any(r => r.AppUserId == currentUser.Id);
-
-                if (!esteResponsabil)
-                {
-                    var responsabilNou = new ResponsabilProiectEntity
-                        {
-                            Cod = proiect.Cod,
-                            AppUserId = currentUser.Id,
-                            DataAtribuire = DateTime.Now
-                        };
-
-                    proiect.Responsabili.Add(responsabilNou);
-
-                    await ProiectRepository.UpdateAsync(proiect);
-
-                    Logger.LogInformation("User {Email} assigned as responsabil pentru proiectul {Cod}", currentUser.Email, proiect.Cod);
-                }
-
-                if (!selectedProiecte.Any(p => p.Cod == proiect.Cod))
-                {
-                    selectedProiecte.Add(proiect);
-                }
+                selectedProiecte.Add(selected);
+                // Save to database
+                var userSelection = new UserSelectedProject
+                    {
+                        UserId = currentUser.Id,
+                        ProiectId = selected.Cod
+                    };
+                await UserSelectedProjectRepository.AddAsync(userSelection);
+                Logger.LogInformation("Added project {Cod} to selected projects for user {Email}", selected.Cod, currentUser.Email);
             }
         }
-
-        selectedProjectId = 0;
+        else
+        {
+            Logger.LogWarning("No valid project selected or project not found for ID {Id}", selectedProjectId);
+        }
+        selectedProjectId = 0; // Reset selection
     }
 
-    private void RemoveProject(int codProiect)
+    private async Task RemoveProject(int codProiect)
     {
         var proiectToRemove = selectedProiecte.FirstOrDefault(p => p.Cod == codProiect);
         if (proiectToRemove != null)
         {
             selectedProiecte.Remove(proiectToRemove);
-            Logger.LogInformation("Removed project {Cod} from selected projects", codProiect);
+            // Remove from database
+            var userSelection = await UserSelectedProjectRepository.GetAllQueryable()
+                .Where(up => up.UserId == currentUser.Id && up.ProiectId == codProiect)
+                .FirstOrDefaultAsync();
+            if (userSelection != null)
+            {
+                UserSelectedProjectRepository.Delete(userSelection);
+                await UserSelectedProjectRepository.SaveAsync();
+                Logger.LogInformation("Removed project {Cod} from selected projects for user {Email}", codProiect, currentUser.Email);
+            }
         }
     }
 }

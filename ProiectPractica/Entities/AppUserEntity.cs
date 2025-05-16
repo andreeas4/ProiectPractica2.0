@@ -7,20 +7,19 @@ namespace ProiectPractica.Entities
     {
         public AppUserEntity()
         {
-            ProiecteRepartizate = new List<ResponsabilProiectEntity>();
+            ProiecteRepartizate = new HashSet<ResponsabilProiectEntity>();
+            SelectedProjects = new HashSet<UserSelectedProject>();
         }
 
         public AppUserEntity(string userName) : base(userName)
         {
-        }
-
-        public AppUserEntity(string? numeComplet, ICollection<ResponsabilProiectEntity> proiecteRepartizate) : this(numeComplet)
-        {
-            ProiecteRepartizate = proiecteRepartizate;
+            ProiecteRepartizate = new HashSet<ResponsabilProiectEntity>();
+            SelectedProjects = new HashSet<UserSelectedProject>();
         }
 
         public string? NumeComplet { get; set; } = string.Empty;
 
+        public ICollection<UserSelectedProject> SelectedProjects { get; set; }
         public ICollection<ResponsabilProiectEntity> ProiecteRepartizate { get; set; }
     }
 }
