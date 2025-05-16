@@ -96,7 +96,6 @@
     }
 
     <div class="form-check mb-3">
-        <!-- Fixed: Corrected @onchange to call HandleAreSubcontractorChanged -->
         <InputCheckbox class="form-check-input" @bind-Value="proiectModel.AreSubcontractor" @onchange="HandleAreSubcontractorChanged" />
         <label class="form-check-label">Are subcontractor?</label>
     </div>
@@ -104,31 +103,22 @@
     @if (proiectModel.AreSubcontractor)
     {
         <div class="mb-3">
-            <label>Număr subcontractori</label>
-            <InputNumber class="form-control" @bind-Value="proiectModel.NumarSubcontractori" />
-            <ValidationMessage For="@(() => proiectModel.NumarSubcontractori)" />
-        </div>
-
-       <div class="mb-3">
-    <label>Selectați subcontractori</label>
-    <!-- Fixed: Removed @onchange, using @bind-Value with custom property -->
-            <select multiple class="form-control" @onchange="OnSubcontractoriChanged">
+            <label>Selectați subcontractori</label>
+            <select multiple class="form-control" @onchange="HandleSubcontractorSelectionChanged">
                 @foreach (var subcontractor in subcontractori)
                 {
-                    <option value="@subcontractor.Id" selected="@proiectModel.SelectedSubcontractorIds.Contains(subcontractor.Id)">
-                        @subcontractor.Nume (@subcontractor.Domeniu)
-                    </option>
+                    <option value="@subcontractor.Id">@subcontractor.Nume (@subcontractor.Domeniu)</option>
                 }
             </select>
-    @if (proiectModel.SelectedSubcontractorIds != null && proiectModel.SelectedSubcontractorIds.Any() && proiectModel.SelectedSubcontractorIds.Count != proiectModel.NumarSubcontractori)
-    {
-        <div class="text-danger">Numărul subcontractori selectați trebuie să fie egal cu numărul specificat.</div>
-    }
-</div>
+        </div>
+        <div class="mb-3">
+            <label>Număr subcontractori selectați: @proiectModel.NumarSubcontractori</label>
+        </div>
     }
 
     <div class="btn-group" role="group">
-        <button class="btn btn-primary" type="submit" disabled="@(proiectModel.AreSubcontractor && proiectModel.NumarSubcontractori > 0 && (proiectModel.SelectedSubcontractorIds == null || proiectModel.SelectedSubcontractorIds.Count != proiectModel.NumarSubcontractori))">Salvează</button>
+        <button class="btn btn-primary" type="submit">Salvează</button>
+        
         <a class="btn btn-sm btn-outline-primary" href="@NavigationManager.ToAbsoluteUri($"/vizualizare-proiecte")">
             Vizualizează proiectele
         </a>
@@ -141,37 +131,41 @@
     string? mesajEroare = null;
     string? mesajSucces = null;
     List<SubcontractorEntity> subcontractori = new();
-    private List<int> SelectedSubcontractorIds
-    {
-        get => proiectModel.SelectedSubcontractorIds;
-        set
-        {
-            proiectModel.SelectedSubcontractorIds = value ?? new List<int>();
-            StateHasChanged();
-        }
-    }
 
     protected override async Task OnInitializedAsync()
     {
         subcontractori = await DbContext.Subcontractori.ToListAsync();
+    }
 
-    }
-    async Task OnSubcontractoriChanged(ChangeEventArgs e)
-    {
-        // Apelează JS pentru a lua toate valorile selectate
-        var selectedValues = await JSRuntime.InvokeAsync<int[]>("getSelectedValues", "subcontractoriSelect");
-        proiectModel.SelectedSubcontractorIds = selectedValues.ToList();
-    }
     void HandleAreSubcontractorChanged(ChangeEventArgs e)
     {
         if (e.Value != null)
         {
             proiectModel.AreSubcontractor = (bool)e.Value;
+            if (!proiectModel.AreSubcontractor)
+            {
+                proiectModel.SelectedSubcontractorIds.Clear();
+                proiectModel.NumarSubcontractori = 0;
+            }
             StateHasChanged();
         }
     }
+
+    async Task HandleSubcontractorSelectionChanged(ChangeEventArgs e)
+    {
+        if (e.Value is string[] selectedValues)
+        {
+            proiectModel.SelectedSubcontractorIds = selectedValues.Select(int.Parse).ToList();
+            proiectModel.NumarSubcontractori = proiectModel.SelectedSubcontractorIds.Count;
+            StateHasChanged();
+        }
+    }
+
+   
+
     async Task SalveazaProiect()
     {
+        Console.WriteLine("SalveazaProiect called");
         mesajEroare = null;
         mesajSucces = null;
 
@@ -216,11 +210,14 @@
             await DbContext.SaveChangesAsync();
 
             mesajSucces = "Proiectul a fost adăugat cu succes!";
-            proiectModel = new();
+            proiectModel = new Proiect { SelectedSubcontractorIds = new List<int>() };
+            StateHasChanged();
         }
         catch (Exception ex)
         {
-            mesajEroare = $"Eroare la salvarea proiectului: {ex.Message}";
+            mesajEroare = $"Eroare: {ex.Message}\nStackTrace: {ex.StackTrace}";
+            Console.WriteLine(mesajEroare);
+            StateHasChanged();
         }
     }
 }

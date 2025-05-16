@@ -35,7 +35,7 @@ namespace ProiectPractica.Models
         public bool ExistaAmendamente { get; set; }
         public List<Subcontractor> Subcontractori { get; set; } = new();
 
-        [Required(ErrorMessage = "Responsabilul contractului este obligatoriu.")]
+        
         public ResponsabilProiect? Responsabil { get; set; }
 		
 		public List<int> SelectedSubcontractorIds { get; set; } = new();
