@@ -6,7 +6,7 @@
 @inject ProiectPractica.Data.ApplicationDbContext DbContext
 @inject IJSRuntime JSRuntime
 @using Microsoft.EntityFrameworkCore
-
+@rendermode InteractiveServer
 <h2>Toate Contractele</h2>
 
 <a class="btn btn-success" href="@NavigationManager.ToAbsoluteUri("/adauga-proiect")">
@@ -27,6 +27,7 @@ else
     <div class="row row-cols-1 row-cols-md-2 g-4">
         @foreach (var proiect in proiecte)
         {
+            var luniRamase = GetLuniRamase(proiect.DataIncheiereContract); // Calculăm lunile rămase pentru fiecare proiect
             <div class="col">
                 <div class="card shadow-sm border-primary">
                     <div class="card-body">
@@ -36,14 +37,22 @@ else
                             <strong>Obiect:</strong> @proiect.ObiectulContractului<br />
                             <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C")<br />
                             <strong>Status:</strong> @proiect.Status.ToString()<br />
+                            <strong>Data încheiere:</strong> @proiect.DataIncheiereContract.ToShortDateString()<br />
                             <strong>Data semnare:</strong> @proiect.DataSemnareContract.ToShortDateString()<br />
+                            <strong>Luni rămase:</strong> @luniRamase
                             <strong>Subcontractori:</strong> @(proiect.AreSubcontractor ? $"Da ({proiect.NumarSubcontractori})" : "Nu")
+               
                         </p>
 
                         <a class="btn btn-sm btn-outline-primary"
                            href="@NavigationManager.ToAbsoluteUri($"/detalii-proiect/{proiect.Cod}")">
                             Vezi detalii
                         </a>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => ConfirmareStergere(proiect.Cod)">
+                                Șterge
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -61,7 +70,14 @@ else
     {
         NavigationManager.NavigateTo($"/detalii-proiect/{codProiect}");
     }
-
+    private int luniRamase=0;
+    private int GetLuniRamase(DateTime dataIncheiere)
+    {
+        var dataCurenta = DateTime.Now;
+        var diferenta = dataIncheiere.Year * 12 + dataIncheiere.Month - (dataCurenta.Year * 12 + dataCurenta.Month);
+        return diferenta;
+    }
+    
     protected override async Task OnInitializedAsync()
     {
         proiecte = await DbContext.Proiecte.ToListAsync();
@@ -72,5 +88,40 @@ else
             Console.WriteLine($"Cod: {p.Cod}, Client: {p.NumeClient}, Domeniu: {p.Domeniul}");
         }
     }
-    
+    private async Task ConfirmareStergere(int codProiect)
+    {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Sigur vrei să ștergi proiectul cu cod {codProiect}?");
+        if (confirmed)
+        {
+            await StergeProiect(codProiect);
+        }
+    }
+
+    private async Task StergeProiect(int codProiect)
+    {
+        try
+        {
+            var proiectDeSters = await DbContext.Proiecte.FindAsync(codProiect);
+            if (proiectDeSters != null)
+            {
+                DbContext.Proiecte.Remove(proiectDeSters);
+                await DbContext.SaveChangesAsync();
+
+                // Elimină proiectul din lista locală ca să actualizezi UI-ul
+                proiecte.RemoveAll(p => p.Cod == codProiect);
+
+                StateHasChanged(); // Forțează re-render-ul paginii
+            }
+            else
+            {
+                // Opțional: afișează mesaj eroare, proiectul nu a fost găsit
+                Console.WriteLine($"Proiectul cu cod {codProiect} nu a fost găsit.");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Opțional: tratează eroarea, afișează mesaj
+            Console.WriteLine($"Eroare la ștergerea proiectului: {ex.Message}");
+        }
+    }
 }

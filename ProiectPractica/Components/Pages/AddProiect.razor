@@ -103,7 +103,7 @@
     @if (proiectModel.AreSubcontractor)
     {
         <div class="mb-3">
-            <label>Selectați subcontractori</label>
+            <label>Selectați subcontractori (Apăsati shift si click pentru selecție multiplă) </label>
             <select multiple class="form-control" @onchange="HandleSubcontractorSelectionChanged">
                 @foreach (var subcontractor in subcontractori)
                 {
@@ -127,17 +127,17 @@
 
 @code {
     [SupplyParameterFromForm]
-    Proiect proiectModel { get; set; } = new Proiect { SelectedSubcontractorIds = new List<int>() };
-    string? mesajEroare = null;
-    string? mesajSucces = null;
-    List<SubcontractorEntity> subcontractori = new();
+    private Proiect proiectModel { get; set; } = new Proiect { SelectedSubcontractorIds = new List<int>() };
+    private string? mesajEroare = null;
+    private string? mesajSucces = null;
+    private List<SubcontractorEntity> subcontractori = new();
 
     protected override async Task OnInitializedAsync()
     {
         subcontractori = await DbContext.Subcontractori.ToListAsync();
     }
 
-    void HandleAreSubcontractorChanged(ChangeEventArgs e)
+    private void HandleAreSubcontractorChanged(ChangeEventArgs e)
     {
         if (e.Value != null)
         {
@@ -151,7 +151,7 @@
         }
     }
 
-    async Task HandleSubcontractorSelectionChanged(ChangeEventArgs e)
+    private async Task HandleSubcontractorSelectionChanged(ChangeEventArgs e)
     {
         if (e.Value is string[] selectedValues)
         {
@@ -161,9 +161,7 @@
         }
     }
 
-   
-
-    async Task SalveazaProiect()
+    private async Task SalveazaProiect()
     {
         Console.WriteLine("SalveazaProiect called");
         mesajEroare = null;
@@ -195,7 +193,8 @@
                     ExistaAmendamente = proiectModel.ExistaAmendamente,
                     NumarAmendamente = proiectModel.NumarAmendamente,
                     AreSubcontractor = proiectModel.AreSubcontractor,
-                    NumarSubcontractori = proiectModel.NumarSubcontractori
+                    NumarSubcontractori = proiectModel.NumarSubcontractori,
+                    Subcontractori = new List<SubcontractorEntity>()
                 };
 
             if (proiectModel.AreSubcontractor && proiectModel.SelectedSubcontractorIds.Any())

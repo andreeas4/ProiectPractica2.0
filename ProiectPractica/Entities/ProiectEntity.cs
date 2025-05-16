@@ -86,7 +86,7 @@ namespace ProiectPractica.Entities
         public ICollection<TaskProiectEntity> Taskuri { get; set; }
         public ICollection<LivrabilEntity> Livrabile { get; set; }
 
-        public ICollection<SubcontractorEntity> Subcontractori { get; set; }
+        public virtual ICollection<SubcontractorEntity> Subcontractori { get; set; } = new List<SubcontractorEntity>();
 
         public ICollection<ResponsabilProiectEntity> Responsabili { get; set; } = new HashSet<ResponsabilProiectEntity>();
 

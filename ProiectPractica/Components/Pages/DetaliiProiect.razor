@@ -8,7 +8,7 @@
 
 @if (proiect == null)
 {
-    <p>Se încarcă datele proiectului...</p>
+    <p>Proiectul nu a fost găsit sau se încarcă...</p>
 }
 else
 {
@@ -25,12 +25,27 @@ else
                 <strong>Client public:</strong> @(proiect.EsteClientPublic ? "Da" : "Nu")<br />
                 <strong>Amendamente:</strong> @(proiect.ExistaAmendamente ? $"Da ({proiect.NumarAmendamente})" : "Nu")<br />
                 <strong>Subcontractori:</strong> @(proiect.AreSubcontractor ? $"Da ({proiect.NumarSubcontractori})" : "Nu")<br />
+               
+                @if (proiect.Subcontractori != null && proiect.Subcontractori.Any())
+                {
+                    <strong>Lista subcontractori:</strong>
+                    <ul>
+                        @foreach (var subcontractor in proiect.Subcontractori)
+                        {
+                            <li>@subcontractor.Nume (@subcontractor.Domeniu)</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <span>Nu există subcontractori asociați.</span>
+                }
                 <strong>Livrabile:</strong> @proiect.NrLivrabile
             </p>
 
             <a class="btn btn-sm btn-outline-primary"
                href="@NavigationManager.ToAbsoluteUri($"/vizualizare-proiecte")">
-                Inapoi
+                Înapoi
             </a>
         </div>
     </div>
@@ -44,8 +59,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        proiect = await DbContext.Proiecte.FirstOrDefaultAsync(p => p.Cod == cod);
+        proiect = await DbContext.Proiecte
+            .Include(p => p.Subcontractori)
+            .FirstOrDefaultAsync(p => p.Cod == cod);
     }
-
-   
 }
