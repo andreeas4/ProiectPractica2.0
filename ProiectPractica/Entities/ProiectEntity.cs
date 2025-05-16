@@ -80,7 +80,7 @@ namespace ProiectPractica.Entities
         [Range(0, double.MaxValue)]
         [DataType(DataType.Currency)]
         public decimal ValoareContract { get; set; }
-        
+        public AppUserEntity? ResponsabilProiect { get; set; }
         // Relații
         public ICollection<ActAditionalEntity> ActeAditionale { get; set; }
         public ICollection<TaskProiectEntity> Taskuri { get; set; }

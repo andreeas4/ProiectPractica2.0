@@ -1,0 +1,66 @@
+﻿@page "/detalii-proiectul-meu/{cod:int}"
+@using ProiectPractica.Entities
+@inject ProiectPractica.Data.ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<h3>Detalii Proiect</h3>
+
+@if (proiect == null)
+{
+    <p>Proiectul nu a fost găsit sau se încarcă...</p>
+}
+else
+{
+    <div class="card border-info shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">@proiect.NumeClient (@proiect.Cod)</h5>
+            <h6 class="card-subtitle mb-3 text-muted">@proiect.Domeniul</h6>
+            <p class="card-text">
+                <strong>Obiect contract:</strong> @proiect.ObiectulContractului<br />
+                <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C")<br />
+                <strong>Status:</strong> @proiect.Status.ToString()<br />
+                <strong>Semnat la:</strong> @proiect.DataSemnareContract.ToShortDateString()<br />
+                <strong>Încheiere la:</strong> @proiect.DataIncheiereContract.ToShortDateString()<br />
+                <strong>Client public:</strong> @(proiect.EsteClientPublic ? "Da" : "Nu")<br />
+                <strong>Amendamente:</strong> @(proiect.ExistaAmendamente ? $"Da ({proiect.NumarAmendamente})" : "Nu")<br />
+                <strong>Subcontractori:</strong> @(proiect.AreSubcontractor ? $"Da ({proiect.NumarSubcontractori})" : "Nu")<br />
+
+                @if (proiect.Subcontractori != null && proiect.Subcontractori.Any())
+                {
+                    <strong>Lista subcontractori:</strong>
+                    <ul>
+                        @foreach (var subcontractor in proiect.Subcontractori)
+                        {
+                            <li>@subcontractor.Nume (@subcontractor.Domeniu)</li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <span>Nu există subcontractori asociați.</span>
+                }
+                <strong>Livrabile:</strong> @proiect.NrLivrabile
+            </p>
+
+            <a class="btn btn-sm btn-outline-primary"
+               href="@NavigationManager.ToAbsoluteUri($"/")">
+                Înapoi
+            </a>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int cod { get; set; }
+
+    private ProiectEntity? proiect;
+
+    protected override async Task OnInitializedAsync()
+    {
+        proiect = await DbContext.Proiecte
+            .Include(p => p.Subcontractori)
+            .FirstOrDefaultAsync(p => p.Cod == cod);
+    }
+}

@@ -1,12 +1,174 @@
 ﻿@page "/"
-@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Identity
 @using ProiectPractica.Entities
-@using ProiectPractica.Models
-@inject ProiectPractica.Data.ApplicationDbContext DbContext
-@namespace ProiectPractica
+@using ProiectPractica.Components.Account
+@inject UserManager<AppUserEntity> UserManager
+@inject IdentityUserAccessor UserAccessor
+@inject IRepository<ProiectEntity> ProiectRepository
+@inject ILogger<Home> Logger
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+@using ProiectPractica.Interfaces
+@rendermode InteractiveServer
+<PageTitle>Home</PageTitle>
 
 
+
+@if (currentUser == null)
+{
+    <p>Please <a href="/Account/Login">log in</a> to view your projects.</p>
+}
+else
+{
+    <h2>My Projects</h2>
+
+    <!-- Select My Projects -->
+    <h3>Select Your Assigned Projects</h3>
+    @if (myProiecte.Any())
+    {
+        <div class="mb-3">
+            <select @bind="selectedProjectId" class="form-select">
+                <option value="0">-- Select a Project --</option>
+                @foreach (var proiect in myProiecte)
+                {
+                    <option value="@proiect.Cod">@proiect.NumeClient (Cod: @proiect.Cod)</option>
+                }
+            </select>
+        </div>
+        <button @onclick="async () => await AddSelectedProject()" class="btn btn-secondary" disabled="@(selectedProjectId == 0)">
+            Add Selected Project
+        </button>
+    }
+    else
+    {
+        <p>No projects available.</p>
+    }
+
+    <!-- Display Selected Projects (Card Layout like Vizualizare-Proiecte) -->
+    <h3>Selected Projects</h3>
+    @if (selectedProiecte.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            @foreach (var proiect in selectedProiecte)
+            {
+                var luniRamase = GetLuniRamase(proiect.DataIncheiereContract);
+                <div class="col">
+                    <div class="card shadow-sm border-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">@proiect.NumeClient (Cod: @proiect.Cod)</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">@proiect.Domeniul</h6>
+                            <p class="card-text">
+                                <strong>Obiect:</strong> @proiect.ObiectulContractului<br />
+                                <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C")<br />
+                                <strong>Status:</strong> @proiect.Status<br />
+                                <strong>Data încheiere:</strong> @proiect.DataIncheiereContract.ToShortDateString()<br />
+                                <strong>Data semnare:</strong> @proiect.DataSemnareContract.ToShortDateString()<br />
+                                <strong>Luni rămase:</strong> @luniRamase<br />
+                                <strong>Subcontractori:</strong> @(proiect.AreSubcontractor ? $"Da ({proiect.NumarSubcontractori})" : "Nu")
+                            </p>
+                            <a class="btn btn-sm btn-outline-primary"
+                               href="@NavigationManager.ToAbsoluteUri($"/detalii-proiectul-meu/{proiect.Cod}")">
+                                Vezi detalii
+                            </a>
+                            <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => RemoveProject(proiect.Cod)">
+                                Șterge
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p>No projects selected.</p>
+    }
+}
 
 @code {
-    
+    private AppUserEntity? currentUser;
+    private List<ProiectEntity> myProiecte = new(); // Toate proiectele din DB
+    private int selectedProjectId;
+    private List<ProiectEntity> selectedProiecte = new(); // Proiectele atribuite utilizatorului
+
+    private int GetLuniRamase(DateTime dataIncheiere)
+    {
+        var dataCurenta = DateTime.Now;
+        var diferenta = dataIncheiere.Year * 12 + dataIncheiere.Month - (dataCurenta.Year * 12 + dataCurenta.Month);
+        return diferenta > 0 ? diferenta : 0; // Lunile rămase >= 0
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentUser = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext);
+
+        if (currentUser != null)
+        {
+            // Încarcă toate proiectele pentru dropdown
+            myProiecte = await ProiectRepository.GetAllQueryable()
+                .ToListAsync();
+
+            // Încarcă proiectele unde utilizatorul este responsabil pentru listă
+            selectedProiecte = await ProiectRepository.GetAllQueryable()
+                .Where(p => p.ResponsabilProiect != null && p.ResponsabilProiect.Id == currentUser.Id)
+                .ToListAsync();
+
+            Logger.LogInformation("Loaded {Count} total projects", myProiecte.Count);
+            Logger.LogInformation("Loaded {Count} assigned projects for user {Email}", selectedProiecte.Count, currentUser.Email);
+        }
+        else
+        {
+            Logger.LogWarning("No current user found.");
+        }
+    }
+
+    private async Task AddSelectedProject()
+    {
+        if (selectedProjectId != 0 && currentUser != null)
+        {
+            var proiect = await ProiectRepository.GetAllQueryable()
+                .Include(p => p.Responsabili)
+                .FirstOrDefaultAsync(p => p.Cod == selectedProjectId);
+
+            if (proiect != null)
+            {
+                bool esteResponsabil = proiect.Responsabili.Any(r => r.AppUserId == currentUser.Id);
+
+                if (!esteResponsabil)
+                {
+                    var responsabilNou = new ResponsabilProiectEntity
+                        {
+                            Cod = proiect.Cod,
+                            AppUserId = currentUser.Id,
+                            DataAtribuire = DateTime.Now
+                        };
+
+                    proiect.Responsabili.Add(responsabilNou);
+
+                    await ProiectRepository.UpdateAsync(proiect);
+
+                    Logger.LogInformation("User {Email} assigned as responsabil pentru proiectul {Cod}", currentUser.Email, proiect.Cod);
+                }
+
+                if (!selectedProiecte.Any(p => p.Cod == proiect.Cod))
+                {
+                    selectedProiecte.Add(proiect);
+                }
+            }
+        }
+
+        selectedProjectId = 0;
+    }
+
+    private void RemoveProject(int codProiect)
+    {
+        var proiectToRemove = selectedProiecte.FirstOrDefault(p => p.Cod == codProiect);
+        if (proiectToRemove != null)
+        {
+            selectedProiecte.Remove(proiectToRemove);
+            Logger.LogInformation("Removed project {Cod} from selected projects", codProiect);
+        }
+    }
 }
