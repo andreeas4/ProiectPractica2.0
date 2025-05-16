@@ -2,110 +2,110 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProiectPractica.Components.Account;
-using ProiectPractica.Components;
 using ProiectPractica.Data;
+using ProiectPractica.Entities;
 using ProiectPractica.Interfaces;
 using ProiectPractica.Repository;
-using Microsoft.CodeAnalysis;
-using ProiectPractica.Entities;
 using MudBlazor.Services;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adaugă HttpClient în DI container
+// Add services
 builder.Services.AddHttpClient();
-
-
-
-// Alte configurări...
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-builder.Services.AddRazorPages().AddRazorPagesOptions(options =>
-{
-    options.Conventions.ConfigureFilter(new IgnoreAntiforgeryTokenAttribute());
-});
+builder.Services.AddRazorPages();
 builder.Services.AddMudServices();
-
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
-builder.Services.AddServerSideBlazor(options => options.DetailedErrors = true);
+
+// Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = IdentityConstants.ApplicationScheme;
     options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
 })
-    .AddIdentityCookies();
+.AddIdentityCookies();
 
+// DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
-builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddSignInManager()
-    .AddDefaultTokenProviders();
-
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString));
 
+// Identity with AppUserEntity
+builder.Services.AddIdentityCore<AppUserEntity>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = true;
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddSignInManager()
+.AddDefaultTokenProviders();
+
+// Email sender
+builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
+builder.Services.AddSingleton<IEmailSender<AppUserEntity>, EmailSender>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddLogging();
+
+// Other services
 builder.Services.AddScoped<IRepository<SubcontractorEntity>, Repository<SubcontractorEntity>>();
 builder.Services.AddScoped<IRepository<ProiectEntity>, Repository<ProiectEntity>>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "API Proiect Practica",
-        Version = "v1"
-    });
+    options.SwaggerDoc("v1", new() { Title = "API Proiect Practica", Version = "v1" });
 });
+
 var app = builder.Build();
+
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Proiect Practica v1"));
+    app.UseDeveloperExceptionPage();
 }
-if (app.Environment.IsDevelopment())
+else
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Proiect Practica v1");
-    });
+    app.UseExceptionHandler("/Error");
+    app.UseHsts();
 }
 
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseAntiforgery();
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Routes
+app.MapRazorComponents<ProiectPractica.App>()
+    .AddInteractiveServerRenderMode();
+app.MapRazorPages();
+app.MapAdditionalIdentityEndpoints();
+
+// Apply migrations
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider;
-    var dbContext = services.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate(); // 👈 foarte important
-	   
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.Migrate();
 }
+
+// API endpoint
 app.MapDelete("/api/proiecte/{id:int}", async (int id, ApplicationDbContext db) =>
 {
     var proiect = await db.Proiecte.FindAsync(id);
     if (proiect == null)
         return Results.NotFound();
-
     db.Proiecte.Remove(proiect);
     await db.SaveChangesAsync();
-
     return Results.Ok();
 });
-// Configurare middleware pentru aplicație
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseAntiforgery();
-
-app.MapRazorComponents<ProiectPractica.App>()
-    .AddInteractiveServerRenderMode();
-
-app.MapAdditionalIdentityEndpoints();
 
 app.Run();

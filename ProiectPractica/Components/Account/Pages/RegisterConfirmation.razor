@@ -1,68 +1,64 @@
 ﻿@page "/Account/RegisterConfirmation"
-
-@using System.Text
+@using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
+@using ProiectPractica.Entities
+@using System.Text
+@using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.WebUtilities
-@using ProiectPractica.Data
-
-@inject UserManager<ApplicationUser> UserManager
-@inject IEmailSender<ApplicationUser> EmailSender
+@inject UserManager<AppUserEntity> UserManager
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
-
-<PageTitle>Register confirmation</PageTitle>
-
-<h1>Register confirmation</h1>
-
-<StatusMessage Message="@statusMessage" />
-
-@if (emailConfirmationLink is not null)
-{
-    <p>
-        This app does not currently have a real email sender registered, see <a href="https://aka.ms/aspaccountconf">these docs</a> for how to configure a real email sender.
-        Normally this would be emailed: <a href="@emailConfirmationLink">Click here to confirm your account</a>
-    </p>
-}
-else
-{
-    <p>Please check your email to confirm your account.</p>
-}
+@inject IEmailSender<AppUserEntity> EmailSender
+@inject ILogger<Register> Logger
+<PageTitle>Register Confirmation</PageTitle>
+<h1>Register Confirmation</h1>
+<p>Please check your email to confirm your account.</p>
+<div class="row">
+    <div class="col-md-4">
+        <EditForm Model="Input" method="post" OnValidSubmit="ResendEmailConfirmation" FormName="resend-confirmation">
+            <DataAnnotationsValidator />
+            <h2>Resend confirmation email</h2>
+            <hr />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                <label for="email">Email</label>
+                <ValidationMessage For="() => Input.Email" class="text-danger" />
+            </div>
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Resend</button>
+        </EditForm>
+    </div>
+</div>
 
 @code {
-    private string? emailConfirmationLink;
-    private string? statusMessage;
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
 
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
-
-    [SupplyParameterFromQuery]
-    private string? Email { get; set; }
-
-    [SupplyParameterFromQuery]
-    private string? ReturnUrl { get; set; }
-
-    protected override async Task OnInitializedAsync()
+    private async Task ResendEmailConfirmation()
     {
-        if (Email is null)
+        var user = await UserManager.FindByEmailAsync(Input.Email);
+        if (user == null)
         {
-            RedirectManager.RedirectTo("");
+            RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
+            return;
         }
 
-        var user = await UserManager.FindByEmailAsync(Email);
-        if (user is null)
-        {
-            HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            statusMessage = "Error finding user for unspecified email";
-        }
-        else if (EmailSender is IdentityNoOpEmailSender)
-        {
-            // Once you add a real email sender, you should remove this code that lets you confirm the account
-            var userId = await UserManager.GetUserIdAsync(user);
-            var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            emailConfirmationLink = NavigationManager.GetUriWithQueryParameters(
-                NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-                new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
-        }
+        var userId = await UserManager.GetUserIdAsync(user);
+        var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+            NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code });
+
+        await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+        RedirectManager.RedirectTo("Account/RegisterConfirmation", new() { ["email"] = Input.Email });
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Email")]
+        public string Email { get; set; } = "";
     }
 }

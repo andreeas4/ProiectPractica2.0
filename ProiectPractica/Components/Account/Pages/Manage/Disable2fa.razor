@@ -1,12 +1,13 @@
 ﻿@page "/Account/Manage/Disable2fa"
 
 @using Microsoft.AspNetCore.Identity
-@using ProiectPractica.Data
+@using ProiectPractica.Entities
 
-@inject UserManager<ApplicationUser> UserManager
+@inject UserManager<AppUserEntity> UserManager
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<Disable2fa> Logger
+@inject IHttpContextAccessor HttpContextAccessor
 
 <PageTitle>Disable two-factor authentication (2FA)</PageTitle>
 
@@ -31,16 +32,13 @@
 </div>
 
 @code {
-    private ApplicationUser user = default!;
-
-    [CascadingParameter]
-    private HttpContext HttpContext { get; set; } = default!;
+    private AppUserEntity user = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+        user = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext);
 
-        if (HttpMethods.IsGet(HttpContext.Request.Method) && !await UserManager.GetTwoFactorEnabledAsync(user))
+        if (HttpMethods.IsGet(HttpContextAccessor.HttpContext.Request.Method) && !await UserManager.GetTwoFactorEnabledAsync(user))
         {
             throw new InvalidOperationException("Cannot disable 2FA for user as it's not currently enabled.");
         }
@@ -59,6 +57,6 @@
         RedirectManager.RedirectToWithStatus(
             "Account/Manage/TwoFactorAuthentication",
             "2fa has been disabled. You can reenable 2fa when you setup an authenticator app",
-            HttpContext);
+            HttpContextAccessor.HttpContext);
     }
 }

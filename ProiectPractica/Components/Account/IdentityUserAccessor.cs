@@ -1,20 +1,38 @@
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using ProiectPractica.Data;
+using ProiectPractica.Entities;
+using System.Threading.Tasks;
 
 namespace ProiectPractica.Components.Account
 {
-    internal sealed class IdentityUserAccessor(UserManager<ApplicationUser> userManager, IdentityRedirectManager redirectManager)
+    public class IdentityUserAccessor
     {
-        public async Task<ApplicationUser> GetRequiredUserAsync(HttpContext context)
+        private readonly Task<AppUserEntity> _userTask;
+        private readonly UserManager<AppUserEntity> _userManager;
+
+        public IdentityUserAccessor(AuthenticationStateProvider authenticationStateProvider, UserManager<AppUserEntity> userManager)
         {
-            var user = await userManager.GetUserAsync(context.User);
+            _userManager = userManager;
+            _userTask = GetUserAsync(authenticationStateProvider, userManager);
+        }
 
-            if (user is null)
+        private async Task<AppUserEntity> GetUserAsync(AuthenticationStateProvider authenticationStateProvider, UserManager<AppUserEntity> userManager)
+        {
+            var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
+            return await userManager.GetUserAsync(authState.User);
+        }
+
+        public Task<AppUserEntity> GetRequiredUser() => _userTask;
+
+        public async ValueTask<AppUserEntity> GetRequiredUserAsync(HttpContext httpContext)
+        {
+            var user = await GetRequiredUser();
+            if (user == null && httpContext.User.Identity?.IsAuthenticated == true)
             {
-                redirectManager.RedirectToWithStatus("Account/InvalidUser", $"Error: Unable to load user with ID '{userManager.GetUserId(context.User)}'.", context);
+                user = await _userManager.GetUserAsync(httpContext.User);
             }
-
-            return user;
+            return user ?? throw new InvalidOperationException("User not authenticated.");
         }
     }
 }
