@@ -53,7 +53,12 @@ builder.Services.AddIdentityCore<AppUserEntity>(options =>
 builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
 builder.Services.AddSingleton<IEmailSender<AppUserEntity>, EmailSender>();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddLogging();
+builder.Services.AddLogging(logging =>
+{
+    logging.AddConsole();
+    logging.AddDebug();
+    logging.SetMinimumLevel(LogLevel.Information);
+});
 
 // Other services
 builder.Services.AddScoped<IRepository<SubcontractorEntity>, Repository<SubcontractorEntity>>();
@@ -68,6 +73,7 @@ builder.Services.AddScoped<IRepository<LivrabilEntity>, Repository<LivrabilEntit
 builder.Services.AddScoped<IRepository<TaskProiectEntity>, Repository<TaskProiectEntity>>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddHostedService<BackgroundNotificationService>();
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -91,6 +97,7 @@ else
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseRouting(); // Ensure routing is added before authentication/authorization
 app.UseAntiforgery();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -100,23 +107,47 @@ app.MapRazorComponents<ProiectPractica.App>()
     .AddInteractiveServerRenderMode();
 app.MapRazorPages();
 app.MapAdditionalIdentityEndpoints();
+app.MapHub<NotificationHub>("/notificationHub"); // Add SignalR hub mapping
 
-// Apply migrations
+// Apply migrations with error handling
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
+        logger.LogInformation("Database migrations applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to apply database migrations.");
+        throw; // Re-throw to stop the app if migrations fail
+    }
 }
 
-// API endpoint
-app.MapDelete("/api/proiecte/{id:int}", async (int id, ApplicationDbContext db) =>
+// API endpoint with error handling
+app.MapDelete("/api/proiecte/{id:int}", async (int id, ApplicationDbContext db, ILogger<Program> logger) =>
 {
-    var proiect = await db.Proiecte.FindAsync(id);
-    if (proiect == null)
-        return Results.NotFound();
-    db.Proiecte.Remove(proiect);
-    await db.SaveChangesAsync();
-    return Results.Ok();
-});
+    try
+    {
+        var proiect = await db.Proiecte.FindAsync(id);
+        if (proiect == null)
+        {
+            logger.LogWarning("Project with ID {Id} not found.", id);
+            return Results.NotFound();
+        }
+
+        db.Proiecte.Remove(proiect);
+        await db.SaveChangesAsync();
+        logger.LogInformation("Project with ID {Id} deleted successfully.", id);
+        return Results.Ok();
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to delete project with ID {Id}.", id);
+        return Results.Problem("An error occurred while deleting the project.");
+    }
+}).RequireAuthorization();
 
 app.Run();

@@ -103,6 +103,28 @@ else
             </ul>
         }
     }
+
+    <!-- Tasks Section -->
+    <h4>Sarcini Asociate</h4>
+    @if (!tasks.Any())
+    {
+        <p>Nu există sarcini asociate acestui proiect.</p>
+    }
+    else
+    {
+        <ul>
+            @foreach (var task in tasks)
+            {
+                <li>
+                    Descriere: @task.Descriere |
+                    Start: @task.DataStart.ToShortDateString() |
+                    DeadLine: @task.Deadline.ToShortDateString() |
+                    Status: @task.Status |
+                    Responsabil: @(string.IsNullOrEmpty(task.ResponsabilId) ? "N/A" : task.ResponsabilId)
+                </li>
+            }
+        </ul>
+    }
 }
 
 @code {
@@ -113,6 +135,7 @@ else
     private List<ModificareValoareEntity> modificariValoare = new();
     private List<PrelungireContractEntity> prelungiriContract = new();
     private List<ModificareLivrabileEntity> modificariLivrabile = new();
+    private List<TaskProiectEntity> tasks = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -134,6 +157,11 @@ else
 
             modificariLivrabile = await DbContext.ModificariLivrabile
                 .Where(ml => ml.Cod == cod)
+                .ToListAsync();
+
+            // Load tasks
+            tasks = await DbContext.Taskuri
+                .Where(t => t.Cod == cod)
                 .ToListAsync();
         }
     }

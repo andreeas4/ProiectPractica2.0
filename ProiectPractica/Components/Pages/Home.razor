@@ -423,20 +423,32 @@ else
                 return;
             }
 
+            // Save task to database
             await TaskRepository.AddAsync(newTask);
             await TaskRepository.SaveAsync();
 
+            // Update project
             var proiect = await ProiectRepository.GetByIdAsync(currentProiectCod);
             ProiectRepository.Update(proiect);
             await ProiectRepository.SaveAsync();
 
-            var responsabil = await UserManager.FindByIdAsync(newTask.ResponsabilId);
-            if (responsabil != null)
+            // Send notifications
+            try
             {
-                await NotificationService.SendTaskNotificationAsync(newTask, responsabil);
-                await NotificationService.ShowUINotificationAsync(
-                    $"Task assigned to {responsabil.UserName} for project {selectedProiect?.NumeClient}",
-                    currentUser!.Id);
+                var responsabil = await UserManager.FindByIdAsync(newTask.ResponsabilId);
+                if (responsabil != null)
+                {
+                    await NotificationService.SendTaskNotificationAsync(newTask, responsabil);
+                    await NotificationService.ShowUINotificationAsync(
+                        $"Task assigned to {responsabil.UserName} for project {selectedProiect?.NumeClient}",
+                        currentUser!.Id);
+                }
+            }
+            catch (Exception notificationEx)
+            {
+                Logger.LogWarning(notificationEx, "Failed to send notifications for task in project {Cod}", currentProiectCod);
+                errorMessage = "Task created successfully, but notifications could not be sent.";
+                StateHasChanged();
             }
 
             Logger.LogInformation("Added task for project {Cod} by user {Email}", currentProiectCod, currentUser!.Email);
