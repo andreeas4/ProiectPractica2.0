@@ -12,7 +12,7 @@
 }
 else
 {
-    <div class="card border-info shadow-sm">
+    <div class="card border-info shadow-sm mb-4">
         <div class="card-body">
             <h5 class="card-title">@proiect.NumeClient (@proiect.Cod)</h5>
             <h6 class="card-subtitle mb-3 text-muted">@proiect.Domeniul</h6>
@@ -49,6 +49,60 @@ else
             </a>
         </div>
     </div>
+
+    <!-- Additional Acts Section -->
+    <h4>Modificări prin Acte Adiționale</h4>
+    @if (!modificariValoare.Any() && !prelungiriContract.Any() && !modificariLivrabile.Any())
+    {
+        <p>Nu există acte adiționale asociate acestui proiect.</p>
+    }
+    else
+    {
+        @if (modificariValoare.Any())
+        {
+            <h5>Modificări Valoare</h5>
+            <ul>
+                @foreach (var mod in modificariValoare)
+                {
+                    <li>
+                        Data: @mod.DataAct.ToShortDateString() |
+                        Valoare Nouă: @mod.ValoareNoua.ToString("C") |
+                        Motiv: @mod.Motiv
+                    </li>
+                }
+            </ul>
+        }
+
+        @if (prelungiriContract.Any())
+        {
+            <h5>Prelungiri Contract</h5>
+            <ul>
+                @foreach (var prelungire in prelungiriContract)
+                {
+                    <li>
+                        Data: @prelungire.DataAct.ToShortDateString() |
+                        Noua Dată Încheiere: @prelungire.NouaDataIncheiere.ToShortDateString() |
+                        Observații: @(string.IsNullOrEmpty(prelungire.Observatii) ? "N/A" : prelungire.Observatii)
+                    </li>
+                }
+            </ul>
+        }
+
+        @if (modificariLivrabile.Any())
+        {
+            <h5>Modificări Livrabile</h5>
+            <ul>
+                @foreach (var modLivrabile in modificariLivrabile)
+                {
+                    <li>
+                        Data: @modLivrabile.DataAct.ToShortDateString() |
+                        Tip Schimbare: @(modLivrabile.EsteAdaugare ? "Adăugare" : "Eliminare") |
+                        Descriere: @modLivrabile.DescriereSchimbare
+                    </li>
+                }
+            </ul>
+        }
+    }
 }
 
 @code {
@@ -56,11 +110,31 @@ else
     public int cod { get; set; }
 
     private ProiectEntity? proiect;
+    private List<ModificareValoareEntity> modificariValoare = new();
+    private List<PrelungireContractEntity> prelungiriContract = new();
+    private List<ModificareLivrabileEntity> modificariLivrabile = new();
 
     protected override async Task OnInitializedAsync()
     {
+        // Load project details
         proiect = await DbContext.Proiecte
             .Include(p => p.Subcontractori)
             .FirstOrDefaultAsync(p => p.Cod == cod);
+
+        // Load additional acts
+        if (proiect != null)
+        {
+            modificariValoare = await DbContext.ModificariValoare
+                .Where(mv => mv.Cod == cod)
+                .ToListAsync();
+
+            prelungiriContract = await DbContext.PrelungiriContracte
+                .Where(pc => pc.Cod == cod)
+                .ToListAsync();
+
+            modificariLivrabile = await DbContext.ModificariLivrabile
+                .Where(ml => ml.Cod == cod)
+                .ToListAsync();
+        }
     }
 }
