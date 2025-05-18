@@ -299,9 +299,19 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        currentUser = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext);
+        try
+        {
+            currentUser = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext);
+
+        }
+        catch (InvalidOperationException ex)
+        {
+            
+        }
+
         if (currentUser != null)
         {
+
             var responsibleQuery = ProiectRepository.GetAllQueryable()
                 .Include(p => p.Responsabili)
                 .Where(p => p.Responsabili.Any(rp => rp.AppUserId == currentUser.Id));
