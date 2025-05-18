@@ -1,0 +1,84 @@
+﻿@page "/tasks"
+@using Microsoft.AspNetCore.Identity
+@using ProiectPractica.Entities
+@using ProiectPractica.Interfaces
+@using ProiectPractica.Components.Account
+@inject UserManager<AppUserEntity> UserManager
+@inject IdentityUserAccessor UserAccessor
+@inject IRepository<TaskProiectEntity> TaskRepository
+@inject IRepository<ProiectEntity> ProiectRepository
+@inject IRepository<UserSelectedProject> UserSelectedProjectRepository
+@inject IHttpContextAccessor HttpContextAccessor
+@using Microsoft.EntityFrameworkCore
+@rendermode InteractiveServer
+<PageTitle>My Tasks</PageTitle>
+
+@if (currentUser == null)
+{
+    <p>Please <a href="/Account/Login">log in</a> to view your tasks.</p>
+}
+else
+{
+    <h2>My Tasks</h2>
+    @if (tasks.Any())
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Description</th>
+                    <th>Start Date</th>
+                    <th>Deadline</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var task in tasks)
+                {
+                    <tr>
+                        <td>@task.Proiect.NumeClient (Cod: @task.Cod)</td>
+                        <td>@task.Descriere</td>
+                        <td>@task.DataStart.ToShortDateString()</td>
+                        <td>@task.Deadline.ToShortDateString()</td>
+                        <td>@task.Status</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No tasks assigned to you.</p>
+    }
+}
+
+@code {
+    private AppUserEntity? currentUser;
+    private List<TaskProiectEntity> tasks = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentUser = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext);
+        if (currentUser != null)
+        {
+            // Get tasks for projects where the user is a responsabil or has selected the project
+            var projectCods = await ProiectRepository.GetAllQueryable()
+                .Include(p => p.Responsabili)
+                .Where(p => p.Responsabili.Any(rp => rp.AppUserId == currentUser.Id))
+                .Select(p => p.Cod)
+                .ToListAsync();
+
+            var selectedProjectCods = await UserSelectedProjectRepository.GetAllQueryable()
+                .Where(up => up.UserId == currentUser.Id)
+                .Select(up => up.ProiectId)
+                .ToListAsync();
+
+            var allCods = projectCods.Union(selectedProjectCods).Distinct().ToList();
+
+            tasks = await TaskRepository.GetAllQueryable()
+                .Include(t => t.Proiect)
+                .Where(t => allCods.Contains(t.Cod) && t.ResponsabilId == currentUser.Id)
+                .ToListAsync();
+        }
+    }
+}

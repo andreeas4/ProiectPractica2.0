@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProiectPractica.Data;
 using ProiectPractica.Interfaces;
+using System.Linq.Expressions;
 
 namespace ProiectPractica.Repository
 {
@@ -69,6 +70,14 @@ namespace ProiectPractica.Repository
             await _context.SaveChangesAsync();
             return entity;
         }
-
+        public IQueryable<T> GetQueryableWithIncludes(params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+            return query;
+        }
     }
 }

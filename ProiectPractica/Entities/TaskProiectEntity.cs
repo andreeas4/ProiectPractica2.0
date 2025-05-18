@@ -22,19 +22,17 @@ namespace ProiectPractica.Entities
         public DateTime Deadline { get; set; }
 
         [Required, StringLength(50)]
-        public string Status { get; set; } = string.Empty;
-
-        [StringLength(100)]
-        public string? Responsabil { get; set; }
-
+        public string Status { get; set; } = "Open";
         public bool EsteNotificare { get; set; }
 
         [ForeignKey(nameof(Proiect))]
         public int Cod { get; set; }
         public ProiectEntity Proiect { get; set; } = null!;
 
-        
+        [ForeignKey(nameof(Responsabil))]
+        public string ResponsabilId { get; set; } = null!;
+        public AppUserEntity Responsabil { get; set; } = null!;
 
-        
+
     }
 }

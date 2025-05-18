@@ -94,6 +94,11 @@ namespace ProiectPractica.Data
                 .WithOne(a => a.Proiect)
                 .HasForeignKey(a => a.Cod)
                 .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<TaskProiectEntity>()
+                .HasOne(t => t.Responsabil)
+                .WithMany() // No inverse navigation property
+                .HasForeignKey(t => t.ResponsabilId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

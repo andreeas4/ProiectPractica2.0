@@ -1,4 +1,6 @@
-﻿namespace ProiectPractica.Interfaces
+﻿using System.Linq.Expressions;
+
+namespace ProiectPractica.Interfaces
 {
     public interface IRepository<T>
     {
@@ -13,7 +15,8 @@
         Task<T> GetByIdAsync(Guid id);
 
         Task<T> UpdateAsync(T entity);
-        
+        IQueryable<T> GetQueryableWithIncludes(params Expression<Func<T, object>>[] includes);
+
 
     }
 }

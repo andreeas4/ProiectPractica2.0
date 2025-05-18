@@ -58,6 +58,14 @@ builder.Services.AddLogging();
 builder.Services.AddScoped<IRepository<SubcontractorEntity>, Repository<SubcontractorEntity>>();
 builder.Services.AddScoped<IRepository<ProiectEntity>, Repository<ProiectEntity>>();
 builder.Services.AddScoped<IRepository<UserSelectedProject>, Repository<UserSelectedProject>>();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IRepository<ActAditionalEntity>, Repository<ActAditionalEntity>>();
+builder.Services.AddScoped<IRepository<PrelungireContractEntity>, Repository<PrelungireContractEntity>>();
+builder.Services.AddScoped<IRepository<ModificareValoareEntity>, Repository<ModificareValoareEntity>>();
+builder.Services.AddScoped<IRepository<ModificareLivrabileEntity>, Repository<ModificareLivrabileEntity>>();
+builder.Services.AddScoped<IRepository<LivrabilEntity>, Repository<LivrabilEntity>>();
+builder.Services.AddScoped<IRepository<TaskProiectEntity>, Repository<TaskProiectEntity>>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

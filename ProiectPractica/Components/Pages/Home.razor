@@ -2,26 +2,32 @@
 @using Microsoft.AspNetCore.Identity
 @using ProiectPractica.Entities
 @using ProiectPractica.Components.Account
+@using ProiectPractica.Data
+@using ProiectPractica.Interfaces
 @inject UserManager<AppUserEntity> UserManager
 @inject IdentityUserAccessor UserAccessor
 @inject IRepository<ProiectEntity> ProiectRepository
+@inject IRepository<TaskProiectEntity> TaskRepository
+@inject IRepository<ActAditionalEntity> ActAditionalRepository
+@inject IRepository<ModificareValoareEntity> ModificareValoareRepository
+@inject IRepository<PrelungireContractEntity> PrelungireContractRepository
+@inject IRepository<ModificareLivrabileEntity> ModificareLivrabileRepository
+@inject INotificationService NotificationService
 @inject ILogger<Home> Logger
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
-@inject ProiectPractica.Interfaces.IRepository<ProiectPractica.Entities.UserSelectedProject> UserSelectedProjectRepository // Updated namespace
+@inject IRepository<UserSelectedProject> UserSelectedProjectRepository
 @using Microsoft.EntityFrameworkCore
-@using ProiectPractica.Interfaces
 @rendermode InteractiveServer
 <PageTitle>Home</PageTitle>
+
 @if (currentUser == null)
 {
     <p>Please <a href="/Account/Login">log in</a> to view your projects.</p>
 }
 else
 {
-    
-   
     <h2>Contractele Mele</h2>
 
     <!-- Select My Projects -->
@@ -37,14 +43,14 @@ else
                 }
             </select>
         </div>
-        <button @onclick="AddSelectedProject" class="btn btn-secondary">Adauga Contact</button>
+        <button @onclick="AddSelectedProject" class="btn btn-secondary">Adauga Contract</button>
     }
     else
     {
         <p>Nu esti responsabil de niciun contract.</p>
     }
 
-    <!-- Display Selected Projects (Card Layout like Vizualizare-Proiecte) -->
+    <!-- Display Selected Projects -->
     <h3>Contractele Tale</h3>
     @if (selectedProiecte.Any())
     {
@@ -66,13 +72,21 @@ else
                                 <strong>Luni rămase:</strong> @luniRamase<br />
                                 <strong>Subcontractori:</strong> @(proiect.AreSubcontractor ? $"Da ({proiect.NumarSubcontractori})" : "Nu")
                             </p>
-                            <a class="btn btn-sm btn-outline-primary"
-                               href="@NavigationManager.ToAbsoluteUri($"/detalii-proiectul-meu/{proiect.Cod}")">
-                                Vezi detalii
-                            </a>
-                            <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => RemoveProject(proiect.Cod)">
-                                Șterge
-                            </button>
+                            <div class="btn-group">
+                                <a class="btn btn-sm btn-outline-primary"
+                                   href="@NavigationManager.ToAbsoluteUri($"/detalii-proiectul-meu/{proiect.Cod}")">
+                                    Vezi detalii
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveProject(proiect.Cod)">
+                                    Șterge
+                                </button>
+                                <button class="btn btn-sm btn-outline-success" @onclick="() => ShowAddTaskModal(proiect.Cod)">
+                                    Adauga Task
+                                </button>
+                                <button class="btn btn-sm btn-outline-info" @onclick="() => ShowAddActModal(proiect.Cod)">
+                                    Adauga Act Aditional
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -83,19 +97,187 @@ else
     {
         <p>No projects selected.</p>
     }
+
+    <!-- Task Modal -->
+    @if (showTaskModal)
+    {
+        <div class="modal fade show" style="display:block;" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Adauga Task pentru Proiectul @selectedProiect?.NumeClient</h5>
+                        <button type="button" class="btn-close" @onclick="CloseTaskModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <EditForm Model="newTask" OnValidSubmit="HandleAddTask">
+                            <DataAnnotationsValidator />
+                            <div class="mb-3">
+                                <label class="form-label">Des mapcriere</label>
+                                <InputText class="form-control" @bind-Value="newTask.Descriere" />
+                                <ValidationMessage For="@(() => newTask.Descriere)" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Data Start</label>
+                                <InputDate class="form-control" @bind-Value="newTask.DataStart" />
+                                <ValidationMessage For="@(() => newTask.DataStart)" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Deadline</label>
+                                <InputDate class="form-control" @bind-Value="newTask.Deadline" />
+                                <ValidationMessage For="@(() => newTask.Deadline)" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <InputSelect class="form-select" @bind-Value="newTask.Status">
+                                    <option value="Open">Open</option>
+                                    <option value="InProgress">In Progress</option>
+                                    <option value="Completed">Completed</option>
+                                </InputSelect>
+                                <ValidationMessage For="@(() => newTask.Status)" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Responsabil</label>
+                                <InputSelect class="form-select" @bind-Value="newTask.ResponsabilId">
+                                    <option value="">-- Select Responsabil --</option>
+                                    @foreach (var user in projectUsers)
+                                    {
+                                        <option value="@user.Id">@user.UserName</option>
+                                    }
+                                </InputSelect>
+                                <ValidationMessage For="@(() => newTask.ResponsabilId)" />
+                            </div>
+                            <button type="submit" class="btn btn-primary">Salveaza Task</button>
+                            <button type="button" class="btn btn-secondary" @onclick="CloseTaskModal">Anuleaza</button>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+
+    <!-- Act Modal -->
+    @if (showActModal)
+    {
+        <div class="modal fade show" style="display:block;" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Adauga Act Aditional pentru Proiectul @selectedProiect?.NumeClient</h5>
+                        <button type="button" class="btn-close" @onclick="CloseActModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Tip Act</label>
+                            <select class="form-select" @bind="selectedActType">
+                                <option value="">-- Select Tip Act --</option>
+                                <option value="ModificareValoare">Modificare Valoare</option>
+                                <option value="PrelungireContract">Prelungire Contract</option>
+                                <option value="ModificareLivrabile">Modificare Livrabile</option>
+                            </select>
+                        </div>
+
+                        @if (selectedActType == "ModificareValoare")
+                        {
+                            <EditForm Model="modificareValoare" OnValidSubmit="HandleAddModificareValoare">
+                                <DataAnnotationsValidator />
+                                <div class="mb-3">
+                                    <label class="form-label">Data Act</label>
+                                    <InputDate class="form-control" @bind-Value="modificareValoare.DataAct" />
+                                    <ValidationMessage For="@(() => modificareValoare.DataAct)" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Valoare Noua</label>
+                                    <InputNumber class="form-control" @bind-Value="modificareValoare.ValoareNoua" />
+                                    <ValidationMessage For="@(() => modificareValoare.ValoareNoua)" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Motiv</label>
+                                    <InputTextArea class="form-control" @bind-Value="modificareValoare.Motiv" />
+                                    <ValidationMessage For="@(() => modificareValoare.Motiv)" />
+                                </div>
+                                <button type="submit" class="btn btn-primary">Salveaza Act</button>
+                                <button type="button" class="btn btn-secondary" @onclick="CloseActModal">Anuleaza</button>
+                            </EditForm>
+                        }
+                        else if (selectedActType == "PrelungireContract")
+                        {
+                            <EditForm Model="prelungireContract" OnValidSubmit="HandleAddPrelungireContract">
+                                <DataAnnotationsValidator />
+                                <div class="mb-3">
+                                    <label class="form-label">Data Act</label>
+                                    <InputDate class="form-control" @bind-Value="prelungireContract.DataAct" />
+                                    <ValidationMessage For="@(() => prelungireContract.DataAct)" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Noua Data Incheiere</label>
+                                    <InputDate class="form-control" @bind-Value="prelungireContract.NouaDataIncheiere" />
+                                    <ValidationMessage For="@(() => prelungireContract.NouaDataIncheiere)" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Observatii</label>
+                                    <InputTextArea class="form-control" @bind-Value="prelungireContract.Observatii" />
+                                    <ValidationMessage For="@(() => prelungireContract.Observatii)" />
+                                </div>
+                                <button type="submit" class="btn btn-primary">Salveaza Act</button>
+                                <button type="button" class="btn btn-secondary" @onclick="CloseActModal">Anuleaza</button>
+                            </EditForm>
+                        }
+                        else if (selectedActType == "ModificareLivrabile")
+                        {
+                            <EditForm Model="modificareLivrabile" OnValidSubmit="HandleAddModificareLivrabile">
+                                <DataAnnotationsValidator />
+                                <div class="mb-3">
+                                    <label class="form-label">Data Act</label>
+                                    <InputDate class="form-control" @bind-Value="modificareLivrabile.DataAct" />
+                                    <ValidationMessage For="@(() => modificareLivrabile.DataAct)" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Descriere Schimbare</label>
+                                    <InputTextArea class="form-control" @bind-Value="modificareLivrabile.DescriereSchimbare" />
+                                    <ValidationMessage For="@(() => modificareLivrabile.DescriereSchimbare)" />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Tip Schimbare</label>
+                                    <InputSelect class="form-select" @bind-Value="modificareLivrabile.EsteAdaugare">
+                                        <option value="true">Adaugare</option>
+                                        <option value="false">Eliminare</option>
+                                    </InputSelect>
+                                    <ValidationMessage For="@(() => modificareLivrabile.EsteAdaugare)" />
+                                </div>
+                                <button type="submit" class="btn btn-primary">Salveaza Act</button>
+                                <button type="button" class="btn btn-secondary" @onclick="CloseActModal">Anuleaza</button>
+                            </EditForm>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
 }
-<!-- Rest of the Razor markup remains unchanged -->
+
 @code {
     private AppUserEntity? currentUser;
-    private List<ProiectEntity> myProiecte = new(); // Projects where user is ResponsabilProiect
+    private List<ProiectEntity> myProiecte = new();
     private int selectedProjectId;
     private List<ProiectEntity> selectedProiecte = new();
+    private bool showTaskModal;
+    private bool showActModal;
+    private TaskProiectEntity newTask = new();
+    private ModificareValoareEntity modificareValoare = new();
+    private PrelungireContractEntity prelungireContract = new();
+    private ModificareLivrabileEntity modificareLivrabile = new();
+    private string selectedActType = "";
+    private int currentProiectCod;
+    private ProiectEntity? selectedProiect;
+    private List<AppUserEntity> projectUsers = new();
 
     private int GetLuniRamase(DateTime dataIncheiere)
     {
         var dataCurenta = DateTime.Now;
         var diferenta = dataIncheiere.Year * 12 + dataIncheiere.Month - (dataCurenta.Year * 12 + dataCurenta.Month);
-        return diferenta > 0 ? diferenta : 0; // Ensure non-negative months
+        return diferenta > 0 ? diferenta : 0;
     }
 
     protected override async Task OnInitializedAsync()
@@ -103,24 +285,18 @@ else
         currentUser = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext);
         if (currentUser != null)
         {
-            // Load projects where user is ResponsabilProiect
             var responsibleQuery = ProiectRepository.GetAllQueryable()
                 .Include(p => p.Responsabili)
                 .Where(p => p.Responsabili.Any(rp => rp.AppUserId == currentUser.Id));
             myProiecte = await responsibleQuery.ToListAsync();
-            Logger.LogInformation("Loaded {Count} responsible projects for user {Email}: {@Proiecte}", myProiecte.Count, currentUser.Email, myProiecte);
+            Logger.LogInformation("Loaded {Count} responsible projects for user {Email}", myProiecte.Count, currentUser.Email);
 
-            // Load selected projects from UserSelectedProject
             var selectedQuery = UserSelectedProjectRepository.GetAllQueryable()
                 .Include(up => up.Proiect);
             var userSelections = await selectedQuery
                 .Where(up => up.UserId == currentUser.Id)
                 .ToListAsync();
             selectedProiecte = userSelections.Select(up => up.Proiect).ToList();
-        }
-        else
-        {
-            Logger.LogWarning("No current user found.");
         }
     }
 
@@ -129,24 +305,20 @@ else
         if (selectedProjectId != 0 && myProiecte.Any(p => p.Cod == selectedProjectId))
         {
             var selected = myProiecte.First(p => p.Cod == selectedProjectId);
-            if (!selectedProiecte.Contains(selected)) // Avoid duplicates
+            if (!selectedProiecte.Contains(selected))
             {
                 selectedProiecte.Add(selected);
-                // Save to database
                 var userSelection = new UserSelectedProject
-                    {
-                        UserId = currentUser.Id,
-                        ProiectId = selected.Cod
-                    };
+                {
+                    UserId = currentUser!.Id,
+                    ProiectId = selected.Cod
+                };
                 await UserSelectedProjectRepository.AddAsync(userSelection);
+                await UserSelectedProjectRepository.SaveAsync();
                 Logger.LogInformation("Added project {Cod} to selected projects for user {Email}", selected.Cod, currentUser.Email);
             }
         }
-        else
-        {
-            Logger.LogWarning("No valid project selected or project not found for ID {Id}", selectedProjectId);
-        }
-        selectedProjectId = 0; // Reset selection
+        selectedProjectId = 0;
     }
 
     private async Task RemoveProject(int codProiect)
@@ -155,9 +327,8 @@ else
         if (proiectToRemove != null)
         {
             selectedProiecte.Remove(proiectToRemove);
-            // Remove from database
             var userSelection = await UserSelectedProjectRepository.GetAllQueryable()
-                .Where(up => up.UserId == currentUser.Id && up.ProiectId == codProiect)
+                .Where(up => up.UserId == currentUser!.Id && up.ProiectId == codProiect)
                 .FirstOrDefaultAsync();
             if (userSelection != null)
             {
@@ -166,5 +337,119 @@ else
                 Logger.LogInformation("Removed project {Cod} from selected projects for user {Email}", codProiect, currentUser.Email);
             }
         }
+    }
+
+    private async Task ShowAddTaskModal(int codProiect)
+    {
+        currentProiectCod = codProiect;
+        selectedProiect = selectedProiecte.FirstOrDefault(p => p.Cod == codProiect);
+        newTask = new TaskProiectEntity
+        {
+            Cod = codProiect,
+            DataStart = DateTime.Today,
+            Deadline = DateTime.Today.AddDays(7),
+            Status = "Open"
+        };
+
+        // Load users assigned to the project
+        var responsabili = await ProiectRepository.GetQueryableWithIncludes(p => p.Responsabili)
+            .Where(p => p.Cod == codProiect)
+            .SelectMany(p => p.Responsabili)
+            .Select(rp => rp.AppUser)
+            .ToListAsync();
+        projectUsers = responsabili;
+        showTaskModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseTaskModal()
+    {
+        showTaskModal = false;
+        newTask = new();
+        projectUsers = new();
+        StateHasChanged();
+    }
+
+    private async Task HandleAddTask()
+    {
+        newTask.EsteNotificare = true;
+        await TaskRepository.AddAsync(newTask);
+        await TaskRepository.SaveAsync();
+
+        // Update project (optional, e.g., update status)
+        var proiect = await ProiectRepository.GetByIdAsync(currentProiectCod);
+        // Example: proiect.Status = "In Progress";
+        ProiectRepository.Update(proiect);
+        await ProiectRepository.SaveAsync();
+
+        // Send notifications
+        var responsabil = await UserManager.FindByIdAsync(newTask.ResponsabilId);
+        if (responsabil != null)
+        {
+            await NotificationService.SendTaskNotificationAsync(newTask, responsabil);
+            await NotificationService.ShowUINotificationAsync($"Task assigned to {responsabil.UserName} for project {selectedProiect?.NumeClient}", currentUser!.Id);
+        }
+
+        Logger.LogInformation("Added task for project {Cod} by user {Email}", currentProiectCod, currentUser!.Email);
+        CloseTaskModal();
+    }
+
+    private void ShowAddActModal(int codProiect)
+    {
+        currentProiectCod = codProiect;
+        selectedProiect = selectedProiecte.FirstOrDefault(p => p.Cod == codProiect);
+        modificareValoare = new() { Cod = codProiect, DataAct = DateTime.Today };
+        prelungireContract = new() { Cod = codProiect, DataAct = DateTime.Today };
+        modificareLivrabile = new() { Cod = codProiect, DataAct = DateTime.Today };
+        selectedActType = "";
+        showActModal = true;
+        StateHasChanged();
+    }
+
+    private void CloseActModal()
+    {
+        showActModal = false;
+        selectedActType = "";
+        StateHasChanged();
+    }
+
+    private async Task HandleAddModificareValoare()
+    {
+        await ModificareValoareRepository.AddAsync(modificareValoare);
+        await ModificareValoareRepository.SaveAsync();
+
+        // Update project
+        var proiect = await ProiectRepository.GetByIdAsync(currentProiectCod);
+        proiect.ValoareContract = modificareValoare.ValoareNoua;
+        ProiectRepository.Update(proiect);
+        await ProiectRepository.SaveAsync();
+
+        Logger.LogInformation("Added ModificareValoare for project {Cod} by user {Email}", currentProiectCod, currentUser!.Email);
+        CloseActModal();
+    }
+
+    private async Task HandleAddPrelungireContract()
+    {
+        await PrelungireContractRepository.AddAsync(prelungireContract);
+        await PrelungireContractRepository.SaveAsync();
+
+        // Update project
+        var proiect = await ProiectRepository.GetByIdAsync(currentProiectCod);
+        proiect.DataIncheiereContract = prelungireContract.NouaDataIncheiere;
+        ProiectRepository.Update(proiect);
+        await ProiectRepository.SaveAsync();
+
+        Logger.LogInformation("Added PrelungireContract for project {Cod} by user {Email}", currentProiectCod, currentUser!.Email);
+        CloseActModal();
+    }
+
+    private async Task HandleAddModificareLivrabile()
+    {
+        await ModificareLivrabileRepository.AddAsync(modificareLivrabile);
+        await ModificareLivrabileRepository.SaveAsync();
+
+        // Optionally update project or livrabile
+        Logger.LogInformation("Added ModificareLivrabile for project {Cod} by user {Email}", currentProiectCod, currentUser!.Email);
+        CloseActModal();
     }
 }
