@@ -2,14 +2,13 @@
 @using Microsoft.AspNetCore.Identity
 @using ProiectPractica.Entities
 @using ProiectPractica.Interfaces
-@using ProiectPractica.Components.Account
+@using Microsoft.EntityFrameworkCore
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserManager<AppUserEntity> UserManager
-@inject IdentityUserAccessor UserAccessor
 @inject IRepository<TaskProiectEntity> TaskRepository
 @inject IRepository<ProiectEntity> ProiectRepository
 @inject IRepository<UserSelectedProject> UserSelectedProjectRepository
-@inject IHttpContextAccessor HttpContextAccessor
-@using Microsoft.EntityFrameworkCore
+@inject ILogger<Tasks> Logger
 @rendermode InteractiveServer
 <PageTitle>My Tasks</PageTitle>
 
@@ -30,6 +29,7 @@ else
                     <th>Start Date</th>
                     <th>Deadline</th>
                     <th>Status</th>
+                    <th>Notifications</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,6 +41,7 @@ else
                         <td>@task.DataStart.ToShortDateString()</td>
                         <td>@task.Deadline.ToShortDateString()</td>
                         <td>@task.Status</td>
+                        <td>@(task.EsteNotificare ? "Monthly" : "None")</td>
                     </tr>
                 }
             </tbody>
@@ -58,10 +59,16 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        currentUser = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            currentUser = await UserManager.GetUserAsync(user);
+        }
+
         if (currentUser != null)
         {
-            // Get tasks for projects where the user is a responsabil or has selected the project
             var projectCods = await ProiectRepository.GetAllQueryable()
                 .Include(p => p.Responsabili)
                 .Where(p => p.Responsabili.Any(rp => rp.AppUserId == currentUser.Id))
@@ -79,6 +86,8 @@ else
                 .Include(t => t.Proiect)
                 .Where(t => allCods.Contains(t.Cod) && t.ResponsabilId == currentUser.Id)
                 .ToListAsync();
+
+            Logger.LogInformation("Loaded {TaskCount} tasks for user {UserId}", tasks.Count, currentUser?.Id ?? "null");
         }
     }
 }

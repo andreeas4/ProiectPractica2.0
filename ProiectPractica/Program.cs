@@ -7,6 +7,7 @@ using ProiectPractica.Entities;
 using ProiectPractica.Interfaces;
 using ProiectPractica.Repository;
 using MudBlazor.Services;
+using ProiectPractica.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,6 +67,7 @@ builder.Services.AddScoped<IRepository<ModificareLivrabileEntity>, Repository<Mo
 builder.Services.AddScoped<IRepository<LivrabilEntity>, Repository<LivrabilEntity>>();
 builder.Services.AddScoped<IRepository<TaskProiectEntity>, Repository<TaskProiectEntity>>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddHostedService<BackgroundNotificationService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {

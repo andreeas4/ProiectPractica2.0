@@ -1,10 +1,10 @@
 ﻿using Microsoft.JSInterop;
 using ProiectPractica.Entities;
-using ProiectPractica.Interfaces;
 using MailKit.Net.Smtp;
 using MimeKit;
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
+using ProiectPractica.Services;
 namespace ProiectPractica.Repository
 {
     public class NotificationService : INotificationService

@@ -1,6 +1,6 @@
 ﻿using ProiectPractica.Entities;
 
-namespace ProiectPractica.Interfaces
+namespace ProiectPractica.Services
 {
     public interface INotificationService
     {
