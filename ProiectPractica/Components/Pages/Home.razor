@@ -23,283 +23,338 @@
 @rendermode InteractiveServer
 <PageTitle>Home</PageTitle>
 
-@if (currentUser == null)
-{
-        <p>Please <a href="/Account/Login">log in</a> to view your contracts.</p>
-}
-else
-{
-        <!-- Display Tasks -->
-        <h2>Taskurile Mele</h2>
-    @if (myTasks.Any())
+<style>
+    .section-container {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .tasks-section {
+        background-color: #f8f9fa;
+        border-left: 4px solid #007bff;
+    }
+
+    .select-projects-section {
+        background-color: #e9ecef;
+        border-left: 4px solid #28a745;
+    }
+
+    .selected-projects-section {
+        background-color: #ffffff;
+        border-left: 4px solid #dc3545;
+    }
+
+    .section-title {
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: #343a40;
+    }
+
+    .task-card {
+        transition: transform 0.2s;
+    }
+
+    .task-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .project-card {
+        transition: transform 0.2s;
+    }
+
+    .project-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+</style>
+
+<div class="container my-4">
+    @if (currentUser == null)
     {
-                <div class="mb-4">
-            @foreach (var task in myTasks)
-            {
-                var projectName = taskProjects.ContainsKey(task.Cod) ? taskProjects[task.Cod].NumeClient : "Unknown Project";
-                            <div class="card mb-2" key="@task.Id">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>@task.Descriere (Project: @projectName)</strong><br />
-                                        <small>Start: @task.DataStart.ToShortDateString() | End: @task.Deadline.ToShortDateString() | Status: @task.Status</small>
-                                    </div>
-                                    <div class="form-check">
-                                        <input type="checkbox" class="form-check-input" checked="@task.IsCompleted" @onchange="async (ChangeEventArgs e) => await OnTaskCheckboxChanged(task, (bool)e.Value)" />
-                                        <label class="form-check-label">Completed</label>
-                                    </div>
-                                </div>
-                            </div>
-            }
-                </div>
+            <p>Please <a href="/Account/Login">log in</a> to view your contracts.</p>
     }
     else
     {
-                <p>Nu ai taskuri active.</p>
-    }
-
-        <h2>Contractele Mele</h2>
-
-        <!-- Select My Projects -->
-        <p>Selecteaza contractele tale</p>
-    @if (myProiecte.Any())
-    {
-                <div class="mb-3">
-                    <select @bind="selectedProjectId" class="form-select">
-                        <option value="0">-- Select a Project --</option>
-                @foreach (var proiect in myProiecte)
-                {
-                                <option value="@proiect.Cod">@proiect.NumeClient (Cod: @proiect.Cod)</option>
-                }
-                    </select>
-                </div>
-                <button @onclick="AddSelectedProject" class="btn btn-secondary">Adauga Contract</button>
-    }
-    else
-    {
-                <p>Nu esti responsabil de niciun contract.</p>
-    }
-
-        <!-- Display Selected Projects -->
-        <h3>Contractele Tale</h3>
-    @if (selectedProiecte.Any())
-    {
-                <div class="row row-cols-1 row-cols-md-2 g-4">
-            @foreach (var proiect in selectedProiecte)
+            <!-- Tasks Section -->
+            <div class="section-container tasks-section">
+                <h2 class="section-title">Taskurile Mele</h2>
+            @if (myTasks.Any())
             {
-                var luniRamase = GetLuniRamase(proiect.DataIncheiereContract);
-                            <div class="col">
-                                <div class="card shadow-sm border-primary">
-                                    <div class="card-body">
-                                        <h5 class="card-title">@proiect.NumeClient (Cod: @proiect.Cod)</h5>
-                                        <h6 class="card-subtitle mb-2 text-muted">@proiect.Domeniul</h6>
-                                        <p class="card-text">
-                                            <strong>Obiect:</strong> @proiect.ObiectulContractului<br />
-                                            <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C")<br />
-                                            <strong>Status:</strong> @proiect.Status<br />
-                                            <strong>Data încheiere:</strong> @proiect.DataIncheiereContract.ToShortDateString()<br />
-                                            <strong>Data semnare:</strong> @proiect.DataSemnareContract.ToShortDateString()<br />
-                                            <strong>Luni rămase:</strong> @luniRamase<br />
-                                            <strong>Subcontractori:</strong> @(proiect.AreSubcontractor ? $"Da ({proiect.NumarSubcontractori})" : "Nu")
-                                        </p>
-                                        <div class="btn-group">
-                                            <a class="btn btn-sm btn-outline-primary"
-                                               href="@NavigationManager.ToAbsoluteUri($"/detalii-proiectul-meu/{proiect.Cod}")">
-                                                Vezi detalii
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveProject(proiect.Cod)">
-                                                Șterge
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-success" @onclick="() => ShowAddTaskModal(proiect.Cod)">
-                                                Adauga Task
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-info" @onclick="() => ShowAddActModal(proiect.Cod)">
-                                                Adauga Act Aditional
-                                            </button>
+                        <div class="mb-4">
+                    @foreach (var task in myTasks)
+                    {
+                        var projectName = taskProjects.ContainsKey(task.Cod) ? taskProjects[task.Cod].NumeClient : "Unknown Project";
+                                    <div class="card mb-2 task-card" key="@task.Id">
+                                        <div class="card-body d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>@task.Descriere (Project: @projectName)</strong><br />
+                                                <small>Start: @task.DataStart.ToShortDateString() | End: @task.Deadline.ToShortDateString() | Status: @task.Status</small>
+                                            </div>
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" checked="@task.IsCompleted" @onchange="async (ChangeEventArgs e) => await OnTaskCheckboxChanged(task, (bool)e.Value)" />
+                                                <label class="form-check-label">Completed</label>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
+                    }
+                        </div>
             }
-                </div>
-    }
-    else
-    {
-                <p>No projects selected.</p>
-    }
+            else
+            {
+                        <p>Nu ai taskuri active.</p>
+            }
+            </div>
 
-        <!-- Task Modal -->
-    @if (showTaskModal)
-    {
-                <div class="modal fade show" style="display:block;" tabindex="-1" role="dialog">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Adauga Task pentru Proiectul @selectedProiect?.NumeClient</h5>
-                                <button type="button" class="btn-close" @onclick="CloseTaskModal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <EditForm Model="newTask" OnValidSubmit="HandleAddTask">
-                                    <DataAnnotationsValidator />
-                                    <div class="mb-3">
-                                        <label class="form-label">Descriere</label>
-                                        <InputText class="form-control" @bind-Value="newTask.Descriere" />
-                                        <ValidationMessage For="@(() => newTask.Descriere)" />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Data Start</label>
-                                        <InputDate class="form-control" @bind-Value="newTask.DataStart" />
-                                        <ValidationMessage For="@(() => newTask.DataStart)" />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Deadline</label>
-                                        <InputDate class="form-control" @bind-Value="newTask.Deadline" />
-                                        <ValidationMessage For="@(() => newTask.Deadline)" />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Status</label>
-                                        <InputSelect class="form-select" @bind-Value="newTask.Status">
-                                            <option value="Open">Open</option>
-                                            <option value="InProgress">In Progress</option>
-                                            <option value="Completed">Completed</option>
-                                        </InputSelect>
-                                        <ValidationMessage For="@(() => newTask.Status)" />
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Responsabil</label>
-                                        <InputSelect class="form-select" @bind-Value="newTask.ResponsabilId">
-                                    @if (!projectUsers.Any())
-                                    {
-                                                    <option value="" disabled selected>No users available</option>
-                                    }
-                                    else
-                                    {
-                                                    <option value="" disabled selected>-- Select Responsabil --</option>
-                                        @foreach (var user in projectUsers)
-                                        {
-                                                            <option value="@user.Id">@user.UserName</option>
-                                        }
-                                    }
-                                        </InputSelect>
-                                        <ValidationMessage For="@(() => newTask.ResponsabilId)" />
-                                    </div>
-                                    <div class="mb-3 form-check">
-                                        <InputCheckbox class="form-check-input" @bind-Value="newTask.EsteNotificare" />
-                                        <label class="form-check-label">Send monthly notifications</label>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary" disabled="@(!IsFormValid())">Salveaza Task</button>
-                                    <button type="button" class="btn btn-secondary" @onclick="CloseTaskModal">Anuleaza</button>
-                            @if (errorMessage != null)
-                            {
-                                            <div class="alert alert-danger mt-3">@errorMessage</div>
-                            }
-                                </EditForm>
-                            </div>
+            <!-- Select Projects Section -->
+            <div class="section-container select-projects-section">
+                <h2 class="section-title"></h2>
+                <p>Selecteaza contractele tale</p>
+            @if (myProiecte.Any())
+            {
+                        <div class="mb-3">
+                            <select @bind="selectedProjectId" class="form-select">
+                                <option value="0">-- Select a Project --</option>
+                        @foreach (var proiect in myProiecte)
+                        {
+                                        <option value="@proiect.Cod">@proiect.NumeClient (Cod: @proiect.Cod)</option>
+                        }
+                            </select>
                         </div>
-                    </div>
-                </div>
-                <div class="modal-backdrop fade show"></div>
-    }
+                        <button @onclick="AddSelectedProject" class="btn btn-secondary">Adauga Contract</button>
+            }
+            else
+            {
+                        <p>Nu esti responsabil de niciun contract.</p>
+            }
+            </div>
 
-        <!-- Act Modal -->
-    @if (showActModal)
-    {
-                <div class="modal fade show" style="display:block;" tabindex="-1" role="dialog">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Adauga Act Aditional pentru Proiectul @selectedProiect?.NumeClient</h5>
-                                <button type="button" class="btn-close" @onclick="CloseActModal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label class="form-label">Tip Act</label>
-                                    <select class="form-select" @bind="selectedActType">
-                                        <option value="">-- Select Tip Act --</option>
-                                        <option value="ModificareValoare">Modificare Valoare</option>
-                                        <option value="PrelungireContract">Prelungire Contract</option>
-                                        <option value="ModificareLivrabile">Modificare Livrabile</option>
-                                    </select>
+            <!-- Selected Projects Section -->
+            <div class="section-container selected-projects-section">
+                <h3 class="section-title">Contractele Tale</h3>
+            @if (selectedProiecte.Any())
+            {
+                        <div class="row row-cols-1 row-cols-md-2 g-4">
+                    @foreach (var proiect in selectedProiecte)
+                    {
+                        var luniRamase = GetLuniRamase(proiect.DataIncheiereContract);
+                                    <div class="col">
+                                        <div class="card shadow-sm border-primary project-card">
+                                            <div class="card-body">
+                                                <h5 class="card-title">@proiect.NumeClient (Cod: @proiect.Cod)</h5>
+                                                <h6 class="card-subtitle mb-2 text-muted">@proiect.Domeniul</h6>
+                                                <p class="card-text">
+                                                    <strong>Obiect:</strong> @proiect.ObiectulContractului<br />
+                                                    <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C")<br />
+                                                    <strong>Status:</strong> @proiect.Status<br />
+                                                    <strong>Data încheiere:</strong> @proiect.DataIncheiereContract.ToShortDateString()<br />
+                                                    <strong>Data semnare:</strong> @proiect.DataSemnareContract.ToShortDateString()<br />
+                                                    <strong>Luni rămase:</strong> @luniRamase<br />
+                                                    <strong>Subcontractori:</strong> @(proiect.AreSubcontractor ? $"Da ({proiect.NumarSubcontractori})" : "Nu")
+                                                </p>
+                                                <div class="btn-group">
+                                                    <a class="btn btn-sm btn-outline-primary"
+                                                       href="@NavigationManager.ToAbsoluteUri($"/detalii-proiectul-meu/{proiect.Cod}")">
+                                                        Vezi detalii
+                                                    </a>
+                                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveProject(proiect.Cod)">
+                                                        Șterge
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-success" @onclick="() => ShowAddTaskModal(proiect.Cod)">
+                                                        Adauga Task
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-info" @onclick="() => ShowAddActModal(proiect.Cod)">
+                                                        Adauga Act Aditional
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                    }
+                        </div>
+            }
+            else
+            {
+                        <p>No projects selected.</p>
+            }
+            </div>
+
+            <!-- Task Modal -->
+        @if (showTaskModal)
+        {
+                    <div class="modal fade show" style="display:block;" tabindex="-1" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Adauga Task pentru Proiectul @selectedProiect?.NumeClient</h5>
+                                    <button type="button" class="btn-close" @onclick="CloseTaskModal"></button>
                                 </div>
-
-                        @if (selectedActType == "ModificareValoare")
-                        {
-                                        <EditForm Model="modificareValoare" OnValidSubmit="HandleAddModificareValoare">
-                                            <DataAnnotationsValidator />
-                                            <div class="mb-3">
-                                                <label class="form-label">Data Act</label>
-                                                <InputDate class="form-control" @bind-Value="modificareValoare.DataAct" />
-                                                <ValidationMessage For="@(() => modificareValoare.DataAct)" />
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Valoare Noua</label>
-                                                <InputNumber class="form-control" @bind-Value="modificareValoare.ValoareNoua" />
-                                                <ValidationMessage For="@(() => modificareValoare.ValoareNoua)" />
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Motiv</label>
-                                                <InputTextArea class="form-control" @bind-Value="modificareValoare.Motiv" />
-                                                <ValidationMessage For="@(() => modificareValoare.Motiv)" />
-                                            </div>
-                                            <button type="submit" class="btn btn-primary">Salveaza Act</button>
-                                            <button type="button" class="btn btn-secondary" @onclick="CloseActModal">Anuleaza</button>
-                                        </EditForm>
-                        }
-                        else if (selectedActType == "PrelungireContract")
-                        {
-                                        <EditForm Model="prelungireContract" OnValidSubmit="HandleAddPrelungireContract">
-                                            <DataAnnotationsValidator />
-                                            <div class="mb-3">
-                                                <label class="form-label">Data Act</label>
-                                                <InputDate class="form-control" @bind-Value="prelungireContract.DataAct" />
-                                                <ValidationMessage For="@(() => prelungireContract.DataAct)" />
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Noua Data Incheiere</label>
-                                                <InputDate class="form-control" @bind-Value="prelungireContract.NouaDataIncheiere" />
-                                                <ValidationMessage For="@(() => prelungireContract.NouaDataIncheiere)" />
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Observatii</label>
-                                                <InputTextArea class="form-control" @bind-Value="prelungireContract.Observatii" />
-                                                <ValidationMessage For="@(() => prelungireContract.Observatii)" />
-                                            </div>
-                                            <button type="submit" class="btn btn-primary">Salveaza Act</button>
-                                            <button type="button" class="btn btn-secondary" @onclick="CloseActModal">Anuleaza</button>
-                                        </EditForm>
-                        }
-                        else if (selectedActType == "ModificareLivrabile")
-                        {
-                                        <EditForm Model="modificareLivrabile" OnValidSubmit="HandleAddModificareLivrabile">
-                                            <DataAnnotationsValidator />
-                                            <div class="mb-3">
-                                                <label class="form-label">Data Act</label>
-                                                <InputDate class="form-control" @bind-Value="modificareLivrabile.DataAct" />
-                                                <ValidationMessage For="@(() => modificareLivrabile.DataAct)" />
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Descriere Schimbare</label>
-                                                <InputTextArea class="form-control" @bind-Value="modificareLivrabile.DescriereSchimbare" />
-                                                <ValidationMessage For="@(() => modificareLivrabile.DescriereSchimbare)" />
-                                            </div>
-                                            <div class="mb-3">
-                                                <label class="form-label">Tip Schimbare</label>
-                                                <InputSelect class="form-select" @bind-Value="modificareLivrabile.EsteAdaugare">
-                                                    <option value="true">Adaugare</option>
-                                                    <option value="false">Eliminare</option>
-                                                </InputSelect>
-                                                <ValidationMessage For="@(() => modificareLivrabile.EsteAdaugare)" />
-                                            </div>
-                                            <button type="submit" class="btn btn-primary">Salveaza Act</button>
-                                            <button type="button" class="btn btn-secondary" @onclick="CloseActModal">Anuleaza</button>
-                                        </EditForm>
-                        }
+                                <div class="modal-body">
+                                    <EditForm Model="newTask" OnValidSubmit="HandleAddTask">
+                                        <DataAnnotationsValidator />
+                                        <div class="mb-3">
+                                            <label class="form-label">Descriere</label>
+                                            <InputText class="form-control" @bind-Value="newTask.Descriere" />
+                                            <ValidationMessage For="@(() => newTask.Descriere)" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Data Start</label>
+                                            <InputDate class="form-control" @bind-Value="newTask.DataStart" />
+                                            <ValidationMessage For="@(() => newTask.DataStart)" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Deadline</label>
+                                            <InputDate class="form-control" @bind-Value="newTask.Deadline" />
+                                            <ValidationMessage For="@(() => newTask.Deadline)" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Status</label>
+                                            <InputSelect class="form-select" @bind-Value="newTask.Status">
+                                                <option value="Open">Open</option>
+                                                <option value="InProgress">In Progress</option>
+                                                <option value="Completed">Completed</option>
+                                            </InputSelect>
+                                            <ValidationMessage For="@(() => newTask.Status)" />
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Responsabil</label>
+                                            <InputSelect class="form-select" @bind-Value="newTask.ResponsabilId">
+                                        @if (!projectUsers.Any())
+                                        {
+                                                        <option value="" disabled selected>No users available</option>
+                                        }
+                                        else
+                                        {
+                                                        <option value="" disabled selected>-- Select Responsabil --</option>
+                                            @foreach (var user in projectUsers)
+                                            {
+                                                                <option value="@user.Id">@user.UserName</option>
+                                            }
+                                        }
+                                            </InputSelect>
+                                            <ValidationMessage For="@(() => newTask.ResponsabilId)" />
+                                        </div>
+                                        <div class="mb-3 form-check">
+                                            <InputCheckbox class="form-check-input" @bind-Value="newTask.EsteNotificare" />
+                                            <label class="form-check-label">Send monthly notifications</label>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary" disabled="@(!IsFormValid())">Salveaza Task</button>
+                                        <button type="button" class="btn btn-secondary" @onclick="CloseTaskModal">Anuleaza</button>
+                                @if (errorMessage != null)
+                                {
+                                                <div class="alert alert-danger mt-3">@errorMessage</div>
+                                }
+                                    </EditForm>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-backdrop fade show"></div>
+                    <div class="modal-backdrop fade show"></div>
+        }
+
+            <!-- Act Modal -->
+        @if (showActModal)
+        {
+                    <div class="modal fade show" style="display:block;" tabindex="-1" role="dialog">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Adauga Act Aditional pentru Proiectul @selectedProiect?.NumeClient</h5>
+                                    <button type="button" class="btn-close" @onclick="CloseActModal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label">Tip Act</label>
+                                        <select class="form-select" @bind="selectedActType">
+                                            <option value="">-- Select Tip Act --</option>
+                                            <option value="ModificareValoare">Modificare Valoare</option>
+                                            <option value="PrelungireContract">Prelungire Contract</option>
+                                            <option value="ModificareLivrabile">Modificare Livrabile</option>
+                                        </select>
+                                    </div>
+
+                            @if (selectedActType == "ModificareValoare")
+                            {
+                                            <EditForm Model="modificareValoare" OnValidSubmit="HandleAddModificareValoare">
+                                                <DataAnnotationsValidator />
+                                                <div class="mb-3">
+                                                    <label class="form-label">Data Act</label>
+                                                    <InputDate class="form-control" @bind-Value="modificareValoare.DataAct" />
+                                                    <ValidationMessage For="@(() => modificareValoare.DataAct)" />
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Valoare Noua</label>
+                                                    <InputNumber class="form-control" @bind-Value="modificareValoare.ValoareNoua" />
+                                                    <ValidationMessage For="@(() => modificareValoare.ValoareNoua)" />
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Motiv</label>
+                                                    <InputTextArea class="form-control" @bind-Value="modificareValoare.Motiv" />
+                                                    <ValidationMessage For="@(() => modificareValoare.Motiv)" />
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Salveaza Act</button>
+                                                <button type="button" class="btn btn-secondary" @onclick="CloseActModal">Anuleaza</button>
+                                            </EditForm>
+                            }
+                            else if (selectedActType == "PrelungireContract")
+                            {
+                                            <EditForm Model="prelungireContract" OnValidSubmit="HandleAddPrelungireContract">
+                                                <DataAnnotationsValidator />
+                                                <div class="mb-3">
+                                                    <label class="form-label">Data Act</label>
+                                                    <InputDate class="form-control" @bind-Value="prelungireContract.DataAct" />
+                                                    <ValidationMessage For="@(() => prelungireContract.DataAct)" />
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Noua Data Incheiere</label>
+                                                    <InputDate class="form-control" @bind-Value="prelungireContract.NouaDataIncheiere" />
+                                                    <ValidationMessage For="@(() => prelungireContract.NouaDataIncheiere)" />
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Observatii</label>
+                                                    <InputTextArea class="form-control" @bind-Value="prelungireContract.Observatii" />
+                                                    <ValidationMessage For="@(() => prelungireContract.Observatii)" />
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Salveaza Act</button>
+                                                <button type="button" class="btn btn-secondary" @onclick="CloseActModal">Anuleaza</button>
+                                            </EditForm>
+                            }
+                            else if (selectedActType == "ModificareLivrabile")
+                            {
+                                            <EditForm Model="modificareLivrabile" OnValidSubmit="HandleAddModificareLivrabile">
+                                                <DataAnnotationsValidator />
+                                                <div class="mb-3">
+                                                    <label class="form-label">Data Act</label>
+                                                    <InputDate class="form-control" @bind-Value="modificareLivrabile.DataAct" />
+                                                    <ValidationMessage For="@(() => modificareLivrabile.DataAct)" />
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Descriere Schimbare</label>
+                                                    <InputTextArea class="form-control" @bind-Value="modificareLivrabile.DescriereSchimbare" />
+                                                    <ValidationMessage For="@(() => modificareLivrabile.DescriereSchimbare)" />
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Tip Schimbare</label>
+                                                    <InputSelect class="form-select" @bind-Value="modificareLivrabile.EsteAdaugare">
+                                                        <option value="true">Adaugare</option>
+                                                        <option value="false">Eliminare</option>
+                                                    </InputSelect>
+                                                    <ValidationMessage For="@(() => modificareLivrabile.EsteAdaugare)" />
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Salveaza Act</button>
+                                                <button type="button" class="btn btn-secondary" @onclick="CloseActModal">Anuleaza</button>
+                                            </EditForm>
+                            }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-backdrop fade show"></div>
+        }
     }
-}
+</div>
 
 @code {
     private AppUserEntity? currentUser;
@@ -343,14 +398,12 @@ else
 
         if (currentUser != null)
         {
-            // Load responsible projects
             var responsibleQuery = ProiectRepository.GetAllQueryable()
                 .Include(p => p.Responsabili)
                 .Where(p => p.Responsabili.Any(rp => rp.AppUserId == currentUser.Id));
             myProiecte = await responsibleQuery.ToListAsync();
             Logger.LogInformation("Loaded {Count} responsible projects for user {Email}", myProiecte.Count, currentUser.Email);
 
-            // Load selected projects
             var selectedQuery = UserSelectedProjectRepository.GetAllQueryable()
                 .Include(up => up.Proiect);
             var userSelections = await selectedQuery
@@ -358,7 +411,6 @@ else
                 .ToListAsync();
             selectedProiecte = userSelections.Select(up => up.Proiect).ToList();
 
-            // Load tasks and their associated projects
             myTasks = await TaskRepository.GetAllQueryable()
                 .Where(t => t.ResponsabilId == currentUser.Id)
                 .ToListAsync();
@@ -567,7 +619,7 @@ else
                 {
                     Cod = codProiect,
                     ResponsabilId = currentUser!.Id,
-                    Descriere = "Raport (Act aditional) pentru Subcontractor",
+                    Descriere = "raport to Subcontractor",
                     DataStart = DateTime.Today,
                     Deadline = DateTime.Today.AddDays(7),
                     Status = "InProgress",
