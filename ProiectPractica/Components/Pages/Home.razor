@@ -25,10 +25,38 @@
 
 @if (currentUser == null)
 {
-        <p>Please <a href="/Account/Login">log in</a> to view your projects.</p>
+        <p>Please <a href="/Account/Login">log in</a> to view your contracts.</p>
 }
 else
 {
+        <!-- Display Tasks -->
+        <h2>Taskurile Mele</h2>
+    @if (myTasks.Any())
+    {
+                <div class="mb-4">
+            @foreach (var task in myTasks)
+            {
+                var projectName = taskProjects.ContainsKey(task.Cod) ? taskProjects[task.Cod].NumeClient : "Unknown Project";
+                            <div class="card mb-2" key="@task.Id">
+                                <div class="card-body d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@task.Descriere (Project: @projectName)</strong><br />
+                                        <small>Start: @task.DataStart.ToShortDateString() | End: @task.Deadline.ToShortDateString() | Status: @task.Status</small>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" checked="@task.IsCompleted" @onchange="async (ChangeEventArgs e) => await OnTaskCheckboxChanged(task, (bool)e.Value)" />
+                                        <label class="form-check-label">Completed</label>
+                                    </div>
+                                </div>
+                            </div>
+            }
+                </div>
+    }
+    else
+    {
+                <p>Nu ai taskuri active.</p>
+    }
+
         <h2>Contractele Mele</h2>
 
         <!-- Select My Projects -->
@@ -278,6 +306,7 @@ else
     private List<ProiectEntity> myProiecte = new();
     private int selectedProjectId;
     private List<ProiectEntity> selectedProiecte = new();
+    private List<TaskProiectEntity> myTasks = new();
     private bool showTaskModal;
     private bool showActModal;
     private TaskProiectEntity newTask = new();
@@ -289,6 +318,7 @@ else
     private ProiectEntity? selectedProiect;
     private List<AppUserEntity> projectUsers = new();
     private string? errorMessage;
+    private Dictionary<int, ProiectEntity> taskProjects = new();
 
     private int GetLuniRamase(DateTime dataIncheiere)
     {
@@ -301,29 +331,47 @@ else
     {
         try
         {
-            currentUser = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext);
-
+            if (HttpContextAccessor.HttpContext != null)
+            {
+                currentUser = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext);
+            }
         }
         catch (InvalidOperationException ex)
         {
-            
+            Logger.LogError(ex, "Failed to load current user.");
         }
 
         if (currentUser != null)
         {
-
+            // Load responsible projects
             var responsibleQuery = ProiectRepository.GetAllQueryable()
                 .Include(p => p.Responsabili)
                 .Where(p => p.Responsabili.Any(rp => rp.AppUserId == currentUser.Id));
             myProiecte = await responsibleQuery.ToListAsync();
             Logger.LogInformation("Loaded {Count} responsible projects for user {Email}", myProiecte.Count, currentUser.Email);
 
+            // Load selected projects
             var selectedQuery = UserSelectedProjectRepository.GetAllQueryable()
                 .Include(up => up.Proiect);
             var userSelections = await selectedQuery
                 .Where(up => up.UserId == currentUser.Id)
                 .ToListAsync();
             selectedProiecte = userSelections.Select(up => up.Proiect).ToList();
+
+            // Load tasks and their associated projects
+            myTasks = await TaskRepository.GetAllQueryable()
+                .Where(t => t.ResponsabilId == currentUser.Id)
+                .ToListAsync();
+            var taskProjectCodes = myTasks.Select(t => t.Cod).Distinct();
+            var projects = await ProiectRepository.GetAllQueryable()
+                .Where(p => taskProjectCodes.Contains(p.Cod))
+                .ToDictionaryAsync(p => p.Cod, p => p);
+            taskProjects = projects;
+            foreach (var task in myTasks)
+            {
+                task.IsCompleted = task.Status == "Completed";
+            }
+            Logger.LogInformation("Loaded {Count} tasks for user {Email}", myTasks.Count, currentUser.Email);
         }
     }
 
@@ -379,7 +427,7 @@ else
                     DataStart = DateTime.Today,
                     Deadline = DateTime.Today.AddDays(7),
                     Status = "Open",
-                    EsteNotificare = true // Default to checked
+                    EsteNotificare = true
                 };
 
             var responsabili = await ProiectRepository.GetQueryableWithIncludes(p => p.Responsabili)
@@ -433,16 +481,13 @@ else
                 return;
             }
 
-            // Save task to database
             await TaskRepository.AddAsync(newTask);
             await TaskRepository.SaveAsync();
 
-            // Update project
             var proiect = await ProiectRepository.GetByIdAsync(currentProiectCod);
             ProiectRepository.Update(proiect);
             await ProiectRepository.SaveAsync();
 
-            // Send notifications
             try
             {
                 var responsabil = await UserManager.FindByIdAsync(newTask.ResponsabilId);
@@ -459,6 +504,18 @@ else
                 Logger.LogWarning(notificationEx, "Failed to send notifications for task in project {Cod}", currentProiectCod);
                 errorMessage = "Task created successfully, but notifications could not be sent.";
                 StateHasChanged();
+            }
+
+            myTasks = await TaskRepository.GetAllQueryable()
+                .Where(t => t.ResponsabilId == currentUser!.Id)
+                .ToListAsync();
+            var taskProjectCodes = myTasks.Select(t => t.Cod).Distinct();
+            taskProjects = await ProiectRepository.GetAllQueryable()
+                .Where(p => taskProjectCodes.Contains(p.Cod))
+                .ToDictionaryAsync(p => p.Cod, p => p);
+            foreach (var task in myTasks)
+            {
+                task.IsCompleted = task.Status == "Completed";
             }
 
             Logger.LogInformation("Added task for project {Cod} by user {Email}", currentProiectCod, currentUser!.Email);
@@ -501,16 +558,50 @@ else
         StateHasChanged();
     }
 
+    private async Task CreateAutomaticTask(int codProiect)
+    {
+        var proiect = await ProiectRepository.GetByIdAsync(codProiect);
+        if (proiect != null && proiect.AreSubcontractor)
+        {
+            var autoTask = new TaskProiectEntity
+                {
+                    Cod = codProiect,
+                    ResponsabilId = currentUser!.Id,
+                    Descriere = "Raport pentru Subcontractor",
+                    DataStart = DateTime.Today,
+                    Deadline = DateTime.Today.AddDays(7),
+                    Status = "InProgress",
+                    EsteNotificare = false
+                };
+            await TaskRepository.AddAsync(autoTask);
+            await TaskRepository.SaveAsync();
+            Logger.LogInformation("Created automatic task for project {Cod} by user {Email}", codProiect, currentUser.Email);
+
+            myTasks = await TaskRepository.GetAllQueryable()
+                .Where(t => t.ResponsabilId == currentUser!.Id)
+                .ToListAsync();
+            var taskProjectCodes = myTasks.Select(t => t.Cod).Distinct();
+            taskProjects = await ProiectRepository.GetAllQueryable()
+                .Where(p => taskProjectCodes.Contains(p.Cod))
+                .ToDictionaryAsync(p => p.Cod, p => p);
+            foreach (var task in myTasks)
+            {
+                task.IsCompleted = task.Status == "Completed";
+            }
+        }
+    }
+
     private async Task HandleAddModificareValoare()
     {
         await ModificareValoareRepository.AddAsync(modificareValoare);
         await ModificareValoareRepository.SaveAsync();
 
-        // Update project
         var proiect = await ProiectRepository.GetByIdAsync(currentProiectCod);
         proiect.ValoareContract = modificareValoare.ValoareNoua;
         ProiectRepository.Update(proiect);
         await ProiectRepository.SaveAsync();
+
+        await CreateAutomaticTask(currentProiectCod);
 
         Logger.LogInformation("Added ModificareValoare for project {Cod} by user {Email}", currentProiectCod, currentUser!.Email);
         CloseActModal();
@@ -521,11 +612,12 @@ else
         await PrelungireContractRepository.AddAsync(prelungireContract);
         await PrelungireContractRepository.SaveAsync();
 
-        // Update project
         var proiect = await ProiectRepository.GetByIdAsync(currentProiectCod);
         proiect.DataIncheiereContract = prelungireContract.NouaDataIncheiere;
         ProiectRepository.Update(proiect);
         await ProiectRepository.SaveAsync();
+
+        await CreateAutomaticTask(currentProiectCod);
 
         Logger.LogInformation("Added PrelungireContract for project {Cod} by user {Email}", currentProiectCod, currentUser!.Email);
         CloseActModal();
@@ -536,8 +628,39 @@ else
         await ModificareLivrabileRepository.AddAsync(modificareLivrabile);
         await ModificareLivrabileRepository.SaveAsync();
 
-        // Optionally update project or livrabile
+        var proiect = await ProiectRepository.GetByIdAsync(currentProiectCod);
+        if (modificareLivrabile.EsteAdaugare)
+            proiect.NrLivrabile++;
+        else
+            proiect.NrLivrabile--;
+        ProiectRepository.Update(proiect);
+        await ProiectRepository.SaveAsync();
+
+        await CreateAutomaticTask(currentProiectCod);
+
         Logger.LogInformation("Added ModificareLivrabile for project {Cod} by user {Email}", currentProiectCod, currentUser!.Email);
         CloseActModal();
+    }
+
+    private async Task OnTaskCheckboxChanged(TaskProiectEntity task, bool isChecked)
+    {
+        task.IsCompleted = isChecked;
+        if (isChecked)
+        {
+            await OnTaskCompleted(task);
+        }
+        StateHasChanged();
+    }
+
+    private async Task OnTaskCompleted(TaskProiectEntity task)
+    {
+        if (task.IsCompleted)
+        {
+            TaskRepository.Delete(task);
+            await TaskRepository.SaveAsync();
+            myTasks.Remove(task);
+            Logger.LogInformation("Task {TaskId} marked as completed and deleted by user {Email}", task.Id, currentUser!.Email);
+            StateHasChanged();
+        }
     }
 }

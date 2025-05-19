@@ -13,7 +13,7 @@ namespace ProiectPractica.Interfaces
         IQueryable<T> GetAllQueryable();
         Task<T> GetByIdAsync(string id);
         Task<T> GetByIdAsync(Guid id);
-
+        Task DeleteAsync(T entity);
         Task<T> UpdateAsync(T entity);
         IQueryable<T> GetQueryableWithIncludes(params Expression<Func<T, object>>[] includes);
 

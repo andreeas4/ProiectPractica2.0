@@ -1,70 +1,86 @@
 ﻿@page "/vizualizare-proiecte"
 @using ProiectPractica.Entities
-@inject ProiectPractica.Data.ApplicationDbContext DbContext
-@inject NavigationManager NavigationManager
+@using ProiectPractica.Components.Account
+@using ProiectPractica.Interfaces
 @using ProiectPractica.Models
-@inject ProiectPractica.Data.ApplicationDbContext DbContext
-@inject IJSRuntime JSRuntime
 @using Microsoft.EntityFrameworkCore
+@inject NavigationManager NavigationManager
+
+@inject ProiectPractica.Data.ApplicationDbContext DbContext
+@inject IdentityUserAccessor UserAccessor
+@inject IJSRuntime JSRuntime
+@inject IHttpContextAccessor HttpContextAccessor
+
 @rendermode InteractiveServer
-<h2>Toate Contractele</h2>
 
-<a class="btn btn-success" href="@NavigationManager.ToAbsoluteUri("/adauga-proiect")">
-    <i class="bi bi-plus-circle"></i> + Adaugă Contract
-</a>
 
-@if (proiecte == null)
+@if (currentUser == null)
 {
-    <p>Se încarcă contractele...</p>
-}
-else if (!proiecte.Any())
-{
-    <p>Nu există contracte înregistrate.</p>
+    <p>Please <a href="/Account/Login">log in</a> to view all the contracts.</p>
 }
 else
 {
+    <h2>Toate Contractele</h2>
 
-    <div class="row row-cols-1 row-cols-md-2 g-4">
-        @foreach (var proiect in proiecte)
-        {
-            var luniRamase = GetLuniRamase(proiect.DataIncheiereContract); // Calculăm lunile rămase pentru fiecare proiect
-            <div class="col">
-                <div class="card shadow-sm border-primary">
-                    <div class="card-body">
-                        <h5 class="card-title">@proiect.NumeClient (@proiect.Cod)</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">@proiect.Domeniul</h6>
-                        <p class="card-text">
-                            <strong>Obiect:</strong> @proiect.ObiectulContractului<br />
-                            <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C")<br />
-                            <strong>Status:</strong> @proiect.Status.ToString()<br />
-                            <strong>Data încheiere:</strong> @proiect.DataIncheiereContract.ToShortDateString()<br />
-                            <strong>Data semnare:</strong> @proiect.DataSemnareContract.ToShortDateString()<br />
-                            <strong>Luni rămase:</strong> @luniRamase
-                            <strong>Subcontractori:</strong> @(proiect.AreSubcontractor ? $"Da ({proiect.NumarSubcontractori})" : "Nu")
-               
-                        </p>
+    <a class="btn btn-success" href="@NavigationManager.ToAbsoluteUri("/adauga-proiect")">
+        <i class="bi bi-plus-circle"></i> + Adaugă Contract
+    </a>
 
-                        <a class="btn btn-sm btn-outline-primary"
-                           href="@NavigationManager.ToAbsoluteUri($"/detalii-proiect/{proiect.Cod}")">
-                            Vezi detalii
-                        </a>
-                        <div class="btn-group" role="group">
-                            <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => ConfirmareStergere(proiect.Cod)">
-                                Șterge
-                            </button>
+    @if (proiecte == null)
+    {
+        <p>Se încarcă contractele...</p>
+    }
+    else if (!proiecte.Any())
+    {
+        <p>Nu există contracte înregistrate.</p>
+    }
+    else
+    {
+
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            @foreach (var proiect in proiecte)
+            {
+                var luniRamase = GetLuniRamase(proiect.DataIncheiereContract); // Calculăm lunile rămase pentru fiecare proiect
+                <div class="col">
+                    <div class="card shadow-sm border-primary">
+                        <div class="card-body">
+                            <h5 class="card-title">@proiect.NumeClient (@proiect.Cod)</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">@proiect.Domeniul</h6>
+                            <p class="card-text">
+                                <strong>Obiect:</strong> @proiect.ObiectulContractului<br />
+                                <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C")<br />
+                                <strong>Status:</strong> @proiect.Status.ToString()<br />
+                                <strong>Data încheiere:</strong> @proiect.DataIncheiereContract.ToShortDateString()<br />
+                                <strong>Data semnare:</strong> @proiect.DataSemnareContract.ToShortDateString()<br />
+                                <strong>Luni rămase:</strong> @luniRamase
+                                <strong>Subcontractori:</strong> @(proiect.AreSubcontractor ? $"Da ({proiect.NumarSubcontractori})" : "Nu")
+
+                            </p>
+
+                            <a class="btn btn-sm btn-outline-primary"
+                               href="@NavigationManager.ToAbsoluteUri($"/detalii-proiect/{proiect.Cod}")">
+                                Vezi detalii
+                            </a>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => ConfirmareStergere(proiect.Cod)">
+                                    Șterge
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        }
-    </div>
+            }
+        </div>
 
-       
+
+    }
 }
+
+
 
 @code {
     private List<ProiectEntity> proiecte = new();
-    
+    private AppUserEntity? currentUser;
     
     private void NavigheazaLaDetalii(int codProiect)
     {
@@ -80,6 +96,15 @@ else
     
     protected override async Task OnInitializedAsync()
     {
+        try
+        {
+            currentUser = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext);
+
+        }
+        catch (InvalidOperationException ex)
+        {
+
+        }
         proiecte = await DbContext.Proiecte.ToListAsync();
 
         Console.WriteLine("Proiecte încărcate: " + proiecte.Count);

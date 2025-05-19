@@ -23,6 +23,7 @@ public class TaskProiectEntity
 
     [ForeignKey(nameof(Proiect))]
     public int Cod { get; set; }
+    public bool IsCompleted { get; set; } = false;  
     public ProiectEntity Proiect { get; set; } = null!;
 
     [Required] // Ensure this is present

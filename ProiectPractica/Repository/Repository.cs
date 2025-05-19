@@ -20,7 +20,11 @@ namespace ProiectPractica.Repository
         {
             return await _dbSet.ToListAsync();
         }
-
+        public async Task DeleteAsync(T entity)
+        {
+            _context.Set<T>().Remove(entity);
+            await _context.SaveChangesAsync();
+        }
         public async Task<T> GetByIdAsync(int id)
         {
             return await _dbSet.FindAsync(id);
