@@ -14,68 +14,164 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @rendermode InteractiveServer
 
-@if (currentUser == null)
-{
-    <p>Please <a href="/Account/Login">log in</a> to view all the subcontractors.</p>
-}
-else
-{
-    <h2>Listă Subcontractori</h2>
-
-    <a class="btn btn-success" href="@NavigationManager.ToAbsoluteUri("/adauga-subcontractor")">
-        <i class="bi bi-plus-circle"></i> Adaugă Subcontractor
-    </a>
-
-    @if (subcontractori == null)
-    {
-        <p>Se încarcă lista de subcontractori...</p>
+<style>
+    .container-custom {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
     }
-    else if (!subcontractori.Any())
+
+    .subcontractor-table {
+        margin-top: 1.5rem;
+        border-collapse: separate;
+        border-spacing: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+        .subcontractor-table th {
+            background-color: #6f42c1; /* Matching the navbar purple */
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .subcontractor-table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .subcontractor-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .subcontractor-table tbody tr:hover {
+            background-color: #f8f9fa;
+            transition: background-color 0.3s ease;
+        }
+
+    .btn-add-subcontractor {
+        margin-bottom: 1.5rem;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: transform 0.1s ease, background-color 0.3s ease;
+    }
+
+        .btn-add-subcontractor:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        transition: transform 0.1s ease, background-color 0.3s ease;
+    }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+        }
+
+    .confirmation-alert {
+        margin-top: 1.5rem;
+        padding: 1rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.3s ease;
+    }
+
+        .confirmation-alert strong {
+            color: #dc3545;
+        }
+
+    .loading-text, .empty-text {
+        margin-top: 1.5rem;
+        font-size: 1.1rem;
+        color: #6c757d;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="container-custom">
+    @if (currentUser == null)
     {
-        <p>Nu există subcontractori adăugați încă.</p>
+        <p>Please <a href="/Account/Login">log in</a> to view all the subcontractors.</p>
     }
     else
     {
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>Nume</th>
-                    <th>Domeniu</th>
-                    <th>Email</th>
-                    <th>Telefon</th>
-                    <th>Acțiuni</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var subcontractor in subcontractori.Where(s => s.Id != 0 && !string.IsNullOrWhiteSpace(s.Nume)))
-                {
-                    <tr>
-                        <td>@subcontractor.Nume</td>
-                        <td>@subcontractor.Domeniu</td>
-                        <td>@subcontractor.Email</td>
-                        <td>@subcontractor.Telefon</td>
-                        <td>
-                            <button class="btn btn-danger btn-sm" @onclick="() => CereConfirmareStergere(subcontractor.Id, subcontractor.Nume)">
-                                Șterge
-                            </button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-        @if (triggerConfirmare)
+        <h2 class="mb-4">Listă Subcontractori</h2>
+
+        <a class="btn btn-success btn-add-subcontractor" href="@NavigationManager.ToAbsoluteUri("/adauga-subcontractor")">
+            <i class="bi bi-plus-circle me-2"></i> Adaugă Subcontractor
+        </a>
+
+        @if (subcontractori == null)
         {
-            <div class="alert alert-warning">
-                Sigur vrei să ștergi subcontractorul <strong>@numeDeSters</strong>?
-                <button class="btn btn-danger btn-sm" @onclick="StergeSubcontractor">Da, șterge</button>
-                <button class="btn btn-secondary btn-sm" @onclick="AnuleazaStergere">Anulează</button>
-            </div>
+            <p class="loading-text">Se încarcă lista de subcontractori...</p>
+        }
+        else if (!subcontractori.Any())
+        {
+            <p class="empty-text">Nu există subcontractori adăugați încă.</p>
+        }
+        else
+        {
+            <table class="table table-bordered subcontractor-table">
+                <thead>
+                    <tr>
+                        <th>Nume</th>
+                        <th>Domeniu</th>
+                        <th>Email</th>
+                        <th>Telefon</th>
+                        <th>Acțiuni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var subcontractor in subcontractori.Where(s => s.Id != 0 && !string.IsNullOrWhiteSpace(s.Nume)))
+                    {
+                        <tr>
+                            <td>@subcontractor.Nume</td>
+                            <td>@subcontractor.Domeniu</td>
+                            <td>@subcontractor.Email</td>
+                            <td>@subcontractor.Telefon</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm btn-action" @onclick="() => CereConfirmareStergere(subcontractor.Id, subcontractor.Nume)">
+                                    Șterge
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @if (triggerConfirmare)
+            {
+                <div class="alert alert-warning confirmation-alert">
+                    Sigur vrei să ștergi subcontractorul <strong>@numeDeSters</strong>?
+                    <button class="btn btn-danger btn-sm btn-action" @onclick="StergeSubcontractor">Da, șterge</button>
+                    <button class="btn btn-secondary btn-sm btn-action" @onclick="AnuleazaStergere">Anulează</button>
+                </div>
+            }
         }
     }
-
-}
-
-
+</div>
 
 @code {
     private AppUserEntity? currentUser;
@@ -83,24 +179,23 @@ else
     private int? idDeSters = null;
     private string? numeDeSters = null;
     private bool triggerConfirmare = false;
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
             currentUser = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext);
-
         }
         catch (InvalidOperationException ex)
         {
-
+            Logger.LogError(ex, "Failed to load current user.");
         }
+
         subcontractori = await DbContext.Subcontractori
-        .Where(s => s.Id != 0 && !string.IsNullOrWhiteSpace(s.Nume))
-        .ToListAsync();
-        
+            .Where(s => s.Id != 0 && !string.IsNullOrWhiteSpace(s.Nume))
+            .ToListAsync();
     }
 
-   
     private async Task CereConfirmareStergere(int id, string nume)
     {
         idDeSters = id;
@@ -112,27 +207,36 @@ else
     private void AnuleazaStergere()
     {
         triggerConfirmare = false;
+        idDeSters = null;
+        numeDeSters = null;
     }
 
     private async Task StergeSubcontractor()
     {
+        if (idDeSters == null) return;
+
         var subcontractor = await DbContext.Subcontractori.FindAsync(idDeSters);
         if (subcontractor != null)
         {
             DbContext.Subcontractori.Remove(subcontractor);
             await DbContext.SaveChangesAsync();
-
             subcontractori.Remove(subcontractor);
+            Logger.LogInformation("Subcontractor {Nume} (ID: {Id}) deleted successfully.", subcontractor.Nume, subcontractor.Id);
         }
-        triggerConfirmare = false;
-    }
+        else
+        {
+            Logger.LogWarning("Subcontractor with ID {Id} not found for deletion.", idDeSters);
+        }
 
+        triggerConfirmare = false;
+        idDeSters = null;
+        numeDeSters = null;
+        await InvokeAsync(StateHasChanged);
+    }
 
     private async Task NavigheazaLaAdauga()
     {
         await Task.Yield();
         Navigation.NavigateTo("/adauga-subcontractor", true);
     }
-
-   
 }

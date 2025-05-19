@@ -5,106 +5,174 @@
 @using ProiectPractica.Models
 @using Microsoft.EntityFrameworkCore
 @inject NavigationManager NavigationManager
-
 @inject ProiectPractica.Data.ApplicationDbContext DbContext
 @inject IdentityUserAccessor UserAccessor
 @inject IJSRuntime JSRuntime
 @inject IHttpContextAccessor HttpContextAccessor
-
 @rendermode InteractiveServer
 
-
-@if (currentUser == null)
-{
-    <p>Please <a href="/Account/Login">log in</a> to view all the contracts.</p>
-}
-else
-{
-    <h2>Toate Contractele</h2>
-
-    <a class="btn btn-success" href="@NavigationManager.ToAbsoluteUri("/adauga-proiect")">
-        <i class="bi bi-plus-circle"></i> + Adaugă Contract
-    </a>
-
-    @if (proiecte == null)
-    {
-        <p>Se încarcă contractele...</p>
+<style>
+    .container-custom {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
     }
-    else if (!proiecte.Any())
+
+    .project-card {
+        transition: transform 0.2s ease, box-shadow 0.3s ease;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #e0e0e0;
+    }
+
+    .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .project-card .card-body {
+        padding: 1.5rem;
+    }
+
+    .project-card .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #343a40;
+        margin-bottom: 0.5rem;
+    }
+
+    .project-card .card-subtitle {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #6c757d;
+    }
+
+    .project-card .card-text {
+        font-size: 0.95rem;
+        color: #495057;
+        line-height: 1.6;
+    }
+
+    .project-card .card-text strong {
+        color: #212529;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        transition: transform 0.1s ease, background-color 0.3s ease;
+    }
+
+    .btn-action:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn-add-project {
+        margin-bottom: 1.5rem;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: transform 0.1s ease, background-color 0.3s ease;
+    }
+
+    .btn-add-project:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .loading-text, .empty-text {
+        margin-top: 1.5rem;
+        font-size: 1.1rem;
+        color: #6c757d;
+    }
+</style>
+
+<div class="container-custom">
+    @if (currentUser == null)
     {
-        <p>Nu există contracte înregistrate.</p>
+        <p>Please <a href="/Account/Login">log in</a> to view all the contracts.</p>
     }
     else
     {
+        <h2 class="mb-4">Toate Contractele</h2>
 
-        <div class="row row-cols-1 row-cols-md-2 g-4">
-            @foreach (var proiect in proiecte)
-            {
-                var luniRamase = GetLuniRamase(proiect.DataIncheiereContract); // Calculăm lunile rămase pentru fiecare proiect
-                <div class="col">
-                    <div class="card shadow-sm border-primary">
-                        <div class="card-body">
-                            <h5 class="card-title">@proiect.NumeClient (@proiect.Cod)</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">@proiect.Domeniul</h6>
-                            <p class="card-text">
-                                <strong>Obiect:</strong> @proiect.ObiectulContractului<br />
-                                <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C")<br />
-                                <strong>Status:</strong> @proiect.Status.ToString()<br />
-                                <strong>Data încheiere:</strong> @proiect.DataIncheiereContract.ToShortDateString()<br />
-                                <strong>Data semnare:</strong> @proiect.DataSemnareContract.ToShortDateString()<br />
-                                <strong>Luni rămase:</strong> @luniRamase
-                                <strong>Subcontractori:</strong> @(proiect.AreSubcontractor ? $"Da ({proiect.NumarSubcontractori})" : "Nu")
+        <a class="btn btn-success btn-add-project" href="@NavigationManager.ToAbsoluteUri("/adauga-proiect")">
+            <i class="bi bi-plus-circle me-2"></i> Adaugă Contract
+        </a>
 
-                            </p>
-
-                            <a class="btn btn-sm btn-outline-primary"
-                               href="@NavigationManager.ToAbsoluteUri($"/detalii-proiect/{proiect.Cod}")">
-                                Vezi detalii
-                            </a>
-                            <div class="btn-group" role="group">
-                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => ConfirmareStergere(proiect.Cod)">
-                                    Șterge
-                                </button>
+        @if (proiecte == null)
+        {
+            <p class="loading-text">Se încarcă contractele...</p>
+        }
+        else if (!proiecte.Any())
+        {
+            <p class="empty-text">Nu există contracte înregistrate.</p>
+        }
+        else
+        {
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @foreach (var proiect in proiecte)
+                {
+                    var luniRamase = GetLuniRamase(proiect.DataIncheiereContract);
+                    <div class="col">
+                        <div class="card project-card">
+                            <div class="card-body">
+                                <h5 class="card-title">@proiect.NumeClient (@proiect.Cod)</h5>
+                                <h6 class="card-subtitle mb-2">@proiect.Domeniul</h6>
+                                <p class="card-text">
+                                    <strong>Obiect:</strong> @proiect.ObiectulContractului<br />
+                                    <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C")<br />
+                                    <strong>Status:</strong> @proiect.Status.ToString()<br />
+                                    <strong>Data încheiere:</strong> @proiect.DataIncheiereContract.ToShortDateString()<br />
+                                    <strong>Data semnare:</strong> @proiect.DataSemnareContract.ToShortDateString()<br />
+                                    <strong>Luni rămase:</strong> @luniRamase<br />
+                                    <strong>Subcontractori:</strong> @(proiect.AreSubcontractor ? $"Da ({proiect.NumarSubcontractori})" : "Nu")
+                                </p>
+                                <div class="d-flex gap-2">
+                                    <a class="btn btn-outline-primary btn-sm btn-action"
+                                       href="@NavigationManager.ToAbsoluteUri($"/detalii-proiect/{proiect.Cod}")">
+                                        Vezi detalii
+                                    </a>
+                                    <button class="btn btn-outline-danger btn-sm btn-action" @onclick="() => ConfirmareStergere(proiect.Cod)">
+                                        Șterge
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            }
-        </div>
-
-
+                }
+            </div>
+        }
     }
-}
-
-
+</div>
 
 @code {
     private List<ProiectEntity> proiecte = new();
     private AppUserEntity? currentUser;
-    
+
     private void NavigheazaLaDetalii(int codProiect)
     {
         NavigationManager.NavigateTo($"/detalii-proiect/{codProiect}");
     }
-    private int luniRamase=0;
+
     private int GetLuniRamase(DateTime dataIncheiere)
     {
         var dataCurenta = DateTime.Now;
-        var diferenta = dataIncheiere.Year * 12 + dataIncheiere.Month - (dataCurenta.Year * 12 + dataCurenta.Month);
+        var diferenta = (dataIncheiere.Year * 12 + dataIncheiere.Month) - (dataCurenta.Year * 12 + dataCurenta.Month);
         return diferenta;
     }
-    
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
             currentUser = await UserAccessor.GetRequiredUserAsync(HttpContextAccessor.HttpContext);
-
         }
         catch (InvalidOperationException ex)
         {
-
+            Console.WriteLine($"Error loading user: {ex.Message}");
         }
+
         proiecte = await DbContext.Proiecte.ToListAsync();
 
         Console.WriteLine("Proiecte încărcate: " + proiecte.Count);
@@ -113,6 +181,7 @@ else
             Console.WriteLine($"Cod: {p.Cod}, Client: {p.NumeClient}, Domeniu: {p.Domeniul}");
         }
     }
+
     private async Task ConfirmareStergere(int codProiect)
     {
         bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Sigur vrei să ștergi proiectul cu cod {codProiect}?");
@@ -131,21 +200,16 @@ else
             {
                 DbContext.Proiecte.Remove(proiectDeSters);
                 await DbContext.SaveChangesAsync();
-
-                // Elimină proiectul din lista locală ca să actualizezi UI-ul
                 proiecte.RemoveAll(p => p.Cod == codProiect);
-
-                StateHasChanged(); // Forțează re-render-ul paginii
+                StateHasChanged();
             }
             else
             {
-                // Opțional: afișează mesaj eroare, proiectul nu a fost găsit
                 Console.WriteLine($"Proiectul cu cod {codProiect} nu a fost găsit.");
             }
         }
         catch (Exception ex)
         {
-            // Opțional: tratează eroarea, afișează mesaj
             Console.WriteLine($"Eroare la ștergerea proiectului: {ex.Message}");
         }
     }
