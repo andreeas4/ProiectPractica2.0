@@ -34,16 +34,14 @@ namespace Microsoft.AspNetCore.Routing
 
             accountGroup.MapPost("/Logout", async (
                 ClaimsPrincipal user,
-                SignInManager<AppUserEntity> signInManager,
-                [FromForm] string returnUrl) =>
+                SignInManager<AppUserEntity> signInManager) =>
             {
                 await signInManager.SignOutAsync();
-                return TypedResults.LocalRedirect($"~/{returnUrl}");
+                return TypedResults.LocalRedirect($"~/");
             });
 
             var manageGroup = accountGroup.MapGroup("/Manage").RequireAuthorization();
 
-           
 
             var loggerFactory = endpoints.ServiceProvider.GetRequiredService<ILoggerFactory>();
             var downloadLogger = loggerFactory.CreateLogger("DownloadPersonalData");
