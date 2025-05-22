@@ -10,7 +10,7 @@
 @inject IJSRuntime JSRuntime
 @inject IHttpContextAccessor HttpContextAccessor
 @rendermode InteractiveServer
-
+@using System.Globalization
 <style>
     .container-custom {
         max-width: 1200px;
@@ -121,7 +121,7 @@
                                 <h6 class="card-subtitle mb-2">@proiect.Domeniul</h6>
                                 <p class="card-text">
                                     <strong>Obiect:</strong> @proiect.ObiectulContractului<br />
-                                    <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C")<br />
+                                    <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C", new CultureInfo("ro-RO"))<br />
                                     <strong>Status:</strong> @proiect.Status.ToString()<br />
                                     <strong>Data încheiere:</strong> @proiect.DataIncheiereContract.ToShortDateString()<br />
                                     <strong>Data semnare:</strong> @proiect.DataSemnareContract.ToShortDateString()<br />
@@ -184,7 +184,7 @@
 
     private async Task ConfirmareStergere(int codProiect)
     {
-        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Sigur vrei să ștergi proiectul cu cod {codProiect}?");
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Sigur vrei să ștergi contractul cu cod {codProiect}?");
         if (confirmed)
         {
             await StergeProiect(codProiect);
@@ -210,7 +210,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Eroare la ștergerea proiectului: {ex.Message}");
+            Console.WriteLine($"Eroare la ștergerea contractului: {ex.Message}");
         }
     }
 }

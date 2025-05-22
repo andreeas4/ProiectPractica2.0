@@ -3,7 +3,7 @@
 @inject ProiectPractica.Data.ApplicationDbContext DbContext
 @inject NavigationManager NavigationManager
 @using Microsoft.EntityFrameworkCore
-
+@using System.Globalization
 <h3>Detalii Proiect</h3>
 
 @if (proiect == null)
@@ -18,7 +18,7 @@ else
             <h6 class="card-subtitle mb-3 text-muted">@proiect.Domeniul</h6>
             <p class="card-text">
                 <strong>Obiect contract:</strong> @proiect.ObiectulContractului<br />
-                <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C")<br />
+                <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C", new CultureInfo("ro-RO"))<br />
                 <strong>Status:</strong> @proiect.Status.ToString()<br />
                 <strong>Semnat la:</strong> @proiect.DataSemnareContract.ToShortDateString()<br />
                 <strong>Încheiere la:</strong> @proiect.DataIncheiereContract.ToShortDateString()<br />

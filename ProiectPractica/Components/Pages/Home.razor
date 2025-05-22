@@ -22,7 +22,7 @@
 @using Microsoft.EntityFrameworkCore
 @rendermode InteractiveServer
 <PageTitle>Home</PageTitle>
-
+@using System.Globalization
 <style>
     .section-container {
         margin-bottom: 2rem;
@@ -147,7 +147,7 @@
                                                 <h6 class="card-subtitle mb-2 text-muted">@proiect.Domeniul</h6>
                                                 <p class="card-text">
                                                     <strong>Obiect:</strong> @proiect.ObiectulContractului<br />
-                                                    <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C")<br />
+                                        <strong>Valoare:</strong> @proiect.ValoareContract.ToString("C", new CultureInfo("ro-RO"))<br />
                                                     <strong>Status:</strong> @proiect.Status<br />
                                                     <strong>Data încheiere:</strong> @proiect.DataIncheiereContract.ToShortDateString()<br />
                                                     <strong>Data semnare:</strong> @proiect.DataSemnareContract.ToShortDateString()<br />

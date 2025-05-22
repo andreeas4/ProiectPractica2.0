@@ -8,6 +8,8 @@ using ProiectPractica.Interfaces;
 using ProiectPractica.Repository;
 using MudBlazor.Services;
 using ProiectPractica.Services;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,7 +50,13 @@ builder.Services.AddIdentityCore<AppUserEntity>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddSignInManager()
 .AddDefaultTokenProviders();
-
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { new CultureInfo("ro-RO"), new CultureInfo("fr-FR") };
+    options.DefaultRequestCulture = new RequestCulture("ro-RO"); // Use "fr-FR" for euros
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+});
 // Email sender
 builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
 builder.Services.AddSingleton<IEmailSender<AppUserEntity>, EmailSender>();
