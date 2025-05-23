@@ -47,7 +47,7 @@ namespace ProiectPractica.Repository
 
                 await client.AuthenticateAsync(
                     _configuration["Smtp:Username"] ?? "37edf2953bd87d",
-                    _configuration["Smtp:Password"] ?? "****25a5"
+                    _configuration["Smtp:Password"] ?? ""
                 );
 
                 await client.SendAsync(message);
