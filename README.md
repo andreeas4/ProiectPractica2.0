@@ -179,16 +179,5 @@ Design UI: Paletă violet și alb, componente responsive
 │   └── Repository.cs
 │
 └── 📄 Program.cs<img width="1920" height="1080" alt="Screenshot (87)" src="https://github.com/user-attachments/assets/b6cbce5e-dd1f-4812-b536-4225e90dfdc4" />
-<img width="1920" height="1080" alt="Screenshot (86)" src="https://github.com/user-attachments/assets/4c2ab8d0-3cac-4f3d-838a-d88c26848748" />
-<img width="1920" height="1080" alt="Screenshot (85)" src="https://github.com/user-attachments/assets/af48af5b-48e3-4ab3-beb8-d61a3c8c9e5e" />
-<img width="1920" height="1080" alt="Screenshot (84)" src="https://github.com/user-attachments/assets/2a7603eb-dd83-4e10-9baa-53175b60acff" />
-<img width="1920" height="1080" alt="Screenshot (83)" src="https://github.com/user-attachments/assets/85baef4e-8f02-46b0-8c98-ec5ed7d93953" />
-<img width="1920" height="1080" alt="Screenshot (82)" src="https://github.com/user-attachments/assets/11ad28c1-999f-4baa-ac24-c5ff0c6af251" />
-<img width="1920" height="1080" alt="Screenshot (81)" src="https://github.com/user-attachments/assets/450ea12d-7a0c-436d-919d-9730b54329b9" />
-<img width="1920" height="1080" alt="Screenshot (80)" src="https://github.com/user-attachments/assets/f2642e25-45a2-4956-bca3-0f8666556e98" />
-<img width="1920" height="1080" alt="Screenshot (79)" src="https://github.com/user-attachments/assets/979fa7c3-cc1c-4901-9cda-dae2e4e8b981" />
-<img width="1920" height="1080" alt="Screenshot (78)" src="https://github.com/user-attachments/assets/566c2c53-9ea1-4433-b819-4c358c88b047" />
-<img width="1920" height="1080" alt="Screenshot (77)" src="https://github.com/user-attachments/assets/5839468c-878a-4e69-948d-b2afe0186396" />
-<img width="1920" height="1080" alt="Screenshot (76)" src="https://github.com/user-attachments/assets/257a749a-db03-416c-9757-84c0b2ee023d" />
-<img width="1920" height="1080" alt="Screenshot (75)" src="https://github.com/user-attachments/assets/67da5b61-86a6-4033-80f2-cbc7c136ddb7" />
+
 
