@@ -191,4 +191,4 @@ Design UI: Paletă violet și alb, componente responsive
 <img width="1920" height="1080" alt="Screenshot (77)" src="https://github.com/user-attachments/assets/5839468c-878a-4e69-948d-b2afe0186396" />
 <img width="1920" height="1080" alt="Screenshot (76)" src="https://github.com/user-attachments/assets/257a749a-db03-416c-9757-84c0b2ee023d" />
 <img width="1920" height="1080" alt="Screenshot (75)" src="https://github.com/user-attachments/assets/67da5b61-86a6-4033-80f2-cbc7c136ddb7" />
-<img width="1920" height="1080" alt="Screenshot (74)" src="https://github.com/user-attachments/assets/c5918a43-a467-41e0-82bf-d716bd4fe00c" />
+
