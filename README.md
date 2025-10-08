@@ -1,7 +1,6 @@
 # 🧱 Proiect Practica 2 — Management Proiecte și Subcontractori
 
-## 👩‍💻 Autor
-**Stănciulescu Andreea**
+
 
 ## 📘 Descriere generală
 Proiectul **ProiectPractica** este o aplicație web dezvoltată în **ASP.NET Core cu Blazor Server**, având ca scop **gestionarea proiectelor, subcontractorilor și actelor adiționale**.  
@@ -195,6 +194,4 @@ Fluxuri testabile ulterior:
 
 ---
 
-## 🧭 Concluzie
-Aplicația **ProiectPractica 2** oferă o bază solidă pentru gestionarea proiectelor și subcontractorilor, cu un sistem scalabil de adăugare de acte adiționale și taskuri, notificări și extensii viitoare.  
-Prin arhitectura modulară Blazor + EF Core, sistemul poate fi ușor extins pentru nevoile unei companii reale de construcții sau management de proiecte.
+
